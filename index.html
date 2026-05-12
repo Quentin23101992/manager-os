@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Manager OS">
+<meta name="theme-color" content="#4f8cff">
+<link rel="manifest" href="manifest-os.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f1117'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%234f8cff'>OS</text></svg>">
+<title>Manager OS — Restaurant Manager Toolkit</title>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #1a1d27;
+  --bg3: #242837;
+  --text: #e4e6ed;
+  --text2: #9ca0b0;
+  --accent: #4f8cff;
+  --accent2: #3a6fd8;
+  --green: #34d399;
+  --orange: #fb923c;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --border: #2d3148;
+  --sidebar-w: 280px;
+  --radius: 8px;
+}
+.light {
+  --bg: #f5f6fa;
+  --bg2: #ffffff;
+  --bg3: #e8eaf0;
+  --text: #1a1d27;
+  --text2: #5a5e70;
+  --border: #d1d5e0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+a { color: var(--accent); text-decoration: none; }
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100;
+  transition: transform 0.3s;
+}
+.main { margin-left: var(--sidebar-w); flex: 1; min-width: 0; }
+.content { max-width: 860px; margin: 0 auto; padding: 2rem 2.5rem 4rem; }
+
+/* Sidebar */
+.sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+.sidebar-header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+.sidebar-header .subtitle { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+.nav-group { padding: 0.75rem 0; }
+.nav-group-title {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text2); padding: 0.25rem 1.5rem; margin-bottom: 0.25rem;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.45rem 1.5rem; cursor: pointer; font-size: 0.85rem;
+  color: var(--text2); transition: all 0.15s; border-left: 3px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: var(--bg3); }
+.nav-item.active { color: var(--accent); background: rgba(79,140,255,0.08); border-left-color: var(--accent); font-weight: 600; }
+.nav-item .icon { font-size: 1rem; width: 1.25rem; text-align: center; }
+
+/* Top bar */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.75rem 2.5rem; border-bottom: 1px solid var(--border);
+  background: var(--bg2); position: sticky; top: 0; z-index: 50;
+}
+.topbar-left { display: flex; align-items: center; gap: 1rem; }
+.menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 1.4rem; cursor: pointer; }
+.breadcrumb { font-size: 0.8rem; color: var(--text2); }
+.topbar-actions { display: flex; gap: 0.5rem; }
+.btn-sm {
+  padding: 0.35rem 0.75rem; border-radius: var(--radius); font-size: 0.78rem;
+  border: 1px solid var(--border); background: var(--bg3); color: var(--text);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+.section-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+.section-desc { color: var(--text2); margin-bottom: 2rem; font-size: 0.95rem; }
+
+/* Cards */
+.card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.25rem 1.5rem; margin-bottom: 1rem; transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--accent); }
+.card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.card p, .card li { font-size: 0.88rem; color: var(--text2); }
+.card ul { padding-left: 1.25rem; margin-top: 0.5rem; }
+.card li { margin-bottom: 0.35rem; }
+
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: 0.75rem 0; }
+.checklist li {
+  display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border); font-size: 0.88rem;
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist input[type="checkbox"] {
+  margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0;
+}
+.checklist li.checked span { text-decoration: line-through; color: var(--text2); }
+
+/* Tags */
+.tag {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px;
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.tag-qsr { background: rgba(79,140,255,0.15); color: var(--accent); }
+.tag-casual { background: rgba(52,211,153,0.15); color: var(--green); }
+.tag-fine { background: rgba(251,146,60,0.15); color: var(--orange); }
+.tag-all { background: rgba(228,230,237,0.1); color: var(--text2); }
+.tag-critical { background: rgba(248,113,113,0.15); color: var(--red); }
+
+/* Metric cards */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+.metric {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem 1.25rem; text-align: center;
+}
+.metric .label { font-size: 0.72rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
+.metric .value { font-size: 1.6rem; font-weight: 700; margin: 0.25rem 0; }
+.metric .target { font-size: 0.75rem; color: var(--green); }
+
+/* Collapsible */
+.collapsible { cursor: pointer; user-select: none; }
+.collapsible::before { content: '▸ '; font-size: 0.8em; }
+.collapsible.open::before { content: '▾ '; }
+.collapsible-content { display: none; margin-top: 0.5rem; }
+.collapsible.open + .collapsible-content { display: block; }
+
+/* Formula */
+.formula {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.75rem 1rem; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem;
+  margin: 0.75rem 0; text-align: center;
+}
+
+/* Comparison table */
+.cmp-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.82rem; }
+.cmp-table th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border); color: var(--text2); font-size: 0.72rem; text-transform: uppercase; }
+.cmp-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+.cmp-table tr:hover td { background: var(--bg3); }
+
+/* Alert box */
+.alert {
+  border-radius: var(--radius); padding: 0.75rem 1rem; margin: 0.75rem 0;
+  font-size: 0.85rem; display: flex; align-items: flex-start; gap: 0.5rem;
+}
+.alert-info { background: rgba(79,140,255,0.1); border-left: 3px solid var(--accent); }
+.alert-warn { background: rgba(251,146,60,0.1); border-left: 3px solid var(--orange); }
+.alert-critical { background: rgba(248,113,113,0.1); border-left: 3px solid var(--red); }
+.alert-tip { background: rgba(52,211,153,0.1); border-left: 3px solid var(--green); }
+
+/* Print */
+@media print {
+  .sidebar, .topbar, .menu-btn, .search-box, .daily-reset, .overlay { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .content { max-width: 100%; padding: 0.5rem; }
+  .section { display: block !important; page-break-before: always; }
+  .section:first-child { page-break-before: avoid; }
+  .card { break-inside: avoid; border: 1px solid #ccc; margin-bottom: 0.5rem; }
+  .alert { break-inside: avoid; }
+  .checklist li { border-color: #ccc; }
+  .cmp-table th { border-color: #999; }
+  .cmp-table td { border-color: #ccc; }
+  body { background: white; color: black; font-size: 11pt; }
+  .section-title { font-size: 16pt; color: black; }
+  .tag { border: 1px solid #999; }
+  a { color: black; text-decoration: underline; }
+  .formula { background: #f0f0f0; border-color: #ccc; }
+  h3 { font-size: 12pt; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .menu-btn { display: block; }
+  .content { padding: 1.5rem 1rem; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+  .sidebar.open ~ .overlay { display: block; }
+}
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.25rem; }
+.tab {
+  padding: 0.5rem 1rem; font-size: 0.82rem; cursor: pointer;
+  color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Progress reset for daily */
+.daily-reset { font-size: 0.75rem; color: var(--text2); text-align: right; margin-bottom: 0.5rem; }
+.daily-reset button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.75rem; }
+
+/* Search */
+.search-box {
+  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+}
+.search-input {
+  width: 100%; padding: 0.45rem 0.75rem 0.45rem 2rem;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text); font-size: 0.82rem; outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca0b0' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 0.6rem center;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--text2); }
+.search-results {
+  max-height: 60vh; overflow-y: auto; padding: 0.5rem;
+}
+.search-result {
+  padding: 0.5rem 0.75rem; border-radius: var(--radius); cursor: pointer;
+  font-size: 0.82rem; margin-bottom: 0.25rem; color: var(--text2);
+}
+.search-result:hover { background: var(--bg3); color: var(--text); }
+.search-result .sr-section { font-weight: 600; color: var(--accent); font-size: 0.75rem; }
+.search-result .sr-match { color: var(--text); }
+.search-result mark { background: rgba(79,140,255,0.25); color: var(--text); border-radius: 2px; padding: 0 2px; }
+.search-empty { padding: 1rem; text-align: center; color: var(--text2); font-size: 0.82rem; }
+.nav-item.search-hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="overlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>Manager OS</h1>
+    <div class="subtitle">Restaurant Manager Toolkit</div>
+  </div>
+  <div class="search-box">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search sections..." oninput="handleSearch(this.value)" onkeydown="if(event.key==='Escape'){this.value='';handleSearch('');}">
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Overview</div>
+    <div class="nav-item active" data-section="dashboard"><span class="icon">📊</span> Dashboard</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Daily Operations</div>
+    <div class="nav-item" data-section="opening"><span class="icon">🔑</span> Opening Procedure</div>
+    <div class="nav-item" data-section="closing"><span class="icon">🔒</span> Closing Procedure</div>
+    <div class="nav-item" data-section="hygiene"><span class="icon">🧤</span> Hygiene & HACCP</div>
+    <div class="nav-item" data-section="rush"><span class="icon">⚡</span> Rush Management</div>
+    <div class="nav-item" data-section="cash"><span class="icon">💰</span> Cash & Till</div>
+    <div class="nav-item" data-section="incidents"><span class="icon">🚨</span> Incident Protocols</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Team Management</div>
+    <div class="nav-item" data-section="scheduling"><span class="icon">📅</span> Scheduling</div>
+    <div class="nav-item" data-section="delegation"><span class="icon">🎯</span> Delegation</div>
+    <div class="nav-item" data-section="conflict"><span class="icon">🤝</span> Conflict Resolution</div>
+    <div class="nav-item" data-section="performance"><span class="icon">📈</span> Performance</div>
+    <div class="nav-item" data-section="onboarding"><span class="icon">👋</span> Onboarding</div>
+    <div class="nav-item" data-section="communication"><span class="icon">💬</span> Communication</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Financial / P&L</div>
+    <div class="nav-item" data-section="pnl"><span class="icon">📋</span> Reading a P&L</div>
+    <div class="nav-item" data-section="foodcost"><span class="icon">🍽️</span> Food Cost</div>
+    <div class="nav-item" data-section="laborcost"><span class="icon">👥</span> Labor Cost</div>
+    <div class="nav-item" data-section="ordering"><span class="icon">📦</span> Ordering & Inventory</div>
+    <div class="nav-item" data-section="waste"><span class="icon">🗑️</span> Waste Tracking</div>
+    <div class="nav-item" data-section="breakeven"><span class="icon">⚖️</span> Break-Even & Margins</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Quick Reference</div>
+    <div class="nav-item" data-section="frog"><span class="icon">🐸</span> Case Study: The Frog</div>
+    <div class="nav-item" data-section="dlcref"><span class="icon">📋</span> DLC Reference</div>
+    <div class="nav-item" data-section="glossary"><span class="icon">📖</span> Glossary</div>
+    <div class="nav-item" data-section="interview"><span class="icon">🎤</span> Interview Prep</div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <span class="breadcrumb" id="breadcrumb">Dashboard</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-sm" onclick="toggleTheme()">🌓 Theme</button>
+      <button class="btn-sm" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="section active" id="sec-dashboard">
+  <h2 class="section-title">Manager OS</h2>
+  <p class="section-desc">Your operational brain for restaurant management. Reference content + actionable checklists, designed for real shifts.</p>
+
+  <div class="metrics">
+    <div class="metric"><div class="label">Food Cost Target</div><div class="value" style="color:var(--green)">28-35%</div><div class="target">of revenue (varies by type)</div></div>
+    <div class="metric"><div class="label">Labor Cost Target</div><div class="value" style="color:var(--accent)">25-35%</div><div class="target">of revenue</div></div>
+    <div class="metric"><div class="label">Prime Cost Target</div><div class="value" style="color:var(--orange)">55-65%</div><div class="target">food + labor</div></div>
+    <div class="metric"><div class="label">Net Profit Typical</div><div class="value" style="color:var(--yellow)">3-5%</div><div class="target">top performers: up to 10%</div></div>
+  </div>
+
+  <div class="card">
+    <h3>How to Use This Tool</h3>
+    <p><strong>On shift:</strong> Use the checklists — opening, closing, hygiene checks. Check boxes reset daily.</p>
+    <p style="margin-top:0.5rem"><strong>Studying:</strong> Read the reference sections to understand the "why" behind each procedure.</p>
+    <p style="margin-top:0.5rem"><strong>Interviewing:</strong> Go to Interview Prep for common questions + strong answers.</p>
+    <p style="margin-top:0.5rem"><strong>Printing:</strong> Hit Print to get clean checklists for your clipboard on shift.</p>
+  </div>
+
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h3>⚠️ Triple Filter — Active on All Content</h3>
+    <p>Every piece of advice in this tool has been checked against three filters (from your <a href="#">Operator's Manual</a>):</p>
+    <ul>
+      <li><strong>F1: Does this assume I'm white?</strong> — Most restaurant management advice comes from US/UK chains. French restaurant culture has specific racial dynamics: testing discrimination shows Black applicants face a 1-in-5 callback ratio vs white applicants (INSEE). The advice here is filtered for your reality as a Black manager in France.</li>
+      <li><strong>F2: Does this assume I'm neurotypical?</strong> — Standard "management presence" advice assumes consistent energy, natural social reading, and sensory tolerance. Adapted here for AuDHD: executive function variability, masking cost, sensory overload during rush, pattern-recognition strengths.</li>
+      <li><strong>F3: Does this assume male default?</strong> — Restaurant management is gendered terrain. This tool flags where female managers face different dynamics (authority challenges, emotional labor expectations) so you can spot it when managing mixed teams.</li>
+    </ul>
+    <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--text2);">Sections with specific filter notes are marked with 🔍. The mechanism is always extracted first, then the default assumptions are stripped.</p>
+  </div>
+
+  <div class="card">
+    <h3>Restaurant Type Differences</h3>
+    <p>This tool works across restaurant types. Look for these tags:</p>
+    <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <span class="tag tag-all">All Types</span>
+      <span class="tag tag-qsr">QSR</span>
+      <span class="tag tag-casual">Casual</span>
+      <span class="tag tag-fine">Fine Dining</span>
+      <span class="tag tag-critical">Critical</span>
+    </div>
+  </div>
+
+
+  <div class="card">
+    <h3>Operator's Manual — Cross-References</h3>
+    <p>This tool connects to your Operator's Manual lessons. Key links:</p>
+    <ul>
+      <li><strong>nav-01 (Triple Filter):</strong> The quality gate on all content in this tool</li>
+      <li><strong>nav-02 (Code-Switching):</strong> Managing your communication across kitchen ↔ floor ↔ customers ↔ management</li>
+      <li><strong>nav-05 (Minority Stress Tax):</strong> Why you need MORE recovery than textbook management advice suggests</li>
+      <li><strong>energy-01 (Energy Pools):</strong> Scheduling yourself, not just your team. The two-thirds rule.</li>
+      <li><strong>comm-01 (Claim → Evidence → So What):</strong> Structure for every difficult conversation and every interview answer</li>
+      <li><strong>nego-01 (BATNA):</strong> Your walkaway power. Chômage = your BATNA until Jan 2027.</li>
+      <li><strong>social-01 (Status Games):</strong> Every kitchen and every floor has a status hierarchy. See it.</li>
+      <li><strong>bound-01 (Boundaries):</strong> "No" is a complete sentence. Especially when staff or owners push unreasonable demands.</li>
+      <li><strong>systems-01 (Fix Systems Not Symptoms):</strong> When something keeps going wrong, change the system, not the person.</li>
+      <li><strong>reg-01 (Emotional Signals):</strong> Reading your own state before it derails a shift.</li>
+    </ul>
+  </div>
+  <div class="alert alert-warn">
+    <span>⚡</span>
+    <div><strong>Your Energy Reality (Manual: energy-01 + nav-05):</strong> Standard management advice assumes consistent energy output across a full shift. You have variable executive function, sensory processing costs, and minority stress tax on top. The two-thirds rule applies: plan to operate at 2/3 of what you think you can handle. Schedule your hardest cognitive tasks (ordering, P&L review, scheduling) for your peak window. Leave rush management and routine tasks for lower-energy periods — those run on pattern recognition, which is your strength.</div>
+  </div>
+  <div class="alert alert-info">
+    <span>💡</span>
+    <div><strong>AuDHD Note:</strong> Every section is designed for low cognitive load. Checklists are sequential — just follow top to bottom. No ambiguity, no judgment calls on the list itself. Decision frameworks are separate.</div>
+  </div>
+</div>
+
+<!-- ==================== OPENING PROCEDURE ==================== -->
+<div class="section" id="sec-opening">
+  <h2 class="section-title">Opening Procedure</h2>
+  <p class="section-desc">Everything that needs to happen before the first customer walks in. Sequential — don't skip steps.</p>
+
+  <div class="daily-reset"><span class="today-date"></span> · <button onclick="resetChecklist('opening-cl')">Reset today</button></div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Arrival & Security (T-90 min)</h3>
+    <ul class="checklist" id="opening-cl-1">
+      <li><input type="checkbox"><span>Disarm alarm system, record entry time</span></li>
+      <li><input type="checkbox"><span>Walk full perimeter — check locks, windows, signs of break-in</span></li>
+      <li><input type="checkbox"><span>Turn on lights, HVAC, music system</span></li>
+      <li><input type="checkbox"><span>Check voicemail / emails for cancellations, delivery changes, staff call-outs</span></li>
+      <li><input type="checkbox"><span>Review the day's reservations / expected covers</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Kitchen & Food Safety (T-75 min)</h3>
+    <ul class="checklist" id="opening-cl-2">
+      <li><input type="checkbox"><span>Check all fridge/freezer temperatures — log readings (fridges: 0-4°C, freezers: -18°C or below)</span></li>
+      <li><input type="checkbox"><span>Inspect yesterday's prep — discard anything past use-by date</span></li>
+      <li><input type="checkbox"><span>Verify delivery arrived correctly (cross-check delivery note vs. order)</span></li>
+      <li><input type="checkbox"><span>Check all equipment is working: ovens, fryers, grills, dishwasher</span></li>
+      <li><input type="checkbox"><span>Ensure handwash stations stocked: soap, paper towels, sanitizer</span></li>
+      <li><input type="checkbox"><span>Brief kitchen team on specials, 86'd items, expected volume</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Front of House (T-45 min)</h3>
+    <ul class="checklist" id="opening-cl-3">
+      <li><input type="checkbox"><span>Tables set / wiped down, chairs in position</span></li>
+      <li><input type="checkbox"><span>Check bathrooms — clean, stocked, functional</span></li>
+      <li><input type="checkbox"><span>POS system on, float counted and verified (record amount)</span></li>
+      <li><input type="checkbox"><span>Menus clean and current (prices, specials, allergen info)</span></li>
+      <li><input type="checkbox"><span>Check floor for hazards — wet spots, loose cables, broken fixtures</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Team Briefing (T-15 min)</h3>
+    <ul class="checklist" id="opening-cl-4">
+      <li><input type="checkbox"><span>Confirm who's on shift, assign stations/sections</span></li>
+      <li><input type="checkbox"><span>Communicate specials, promos, 86'd items</span></li>
+      <li><input type="checkbox"><span>Flag VIPs, large parties, allergies on reservations</span></li>
+      <li><input type="checkbox"><span>Set one focus for the shift (e.g., "upsell desserts" or "table turn time")</span></li>
+      <li><input type="checkbox"><span>Ask: "Anyone have questions or issues before we open?"</span></li>
+    </ul>
+  </div>
+
+
+  <div class="card">
+    <h3><span class="tag tag-casual">Pub/Casual</span> Kitchen-Specific Opening (Frog Model)</h3>
+    <ul class="checklist" id="opening-cl-5">
+      <li><input type="checkbox"><span>Review handover notes from previous shift — preps completed, still needed, DLC alerts, stock issues, equipment</span></li>
+      <li><input type="checkbox"><span>Control ALL DLCs — walk-in fridges + base fridges. Pull anything expired.</span></li>
+      <li><input type="checkbox"><span>Verify fridge/freezer temps → record on Trail (not from memory — actual reading)</span></li>
+      <li><input type="checkbox"><span>Check cleaning checklist was signed from previous shift</span></li>
+      <li><input type="checkbox"><span>Check oil quality (visual + smell) — record on daily sheet</span></li>
+      <li><input type="checkbox"><span>Confirm team roster + assign sections (Pass, Burger, Salad, Fryer, Plonge)</span></li>
+      <li><input type="checkbox"><span>Write prep plan per cook: item, amount, start time, estimated duration</span></li>
+      <li><input type="checkbox"><span>Check last week's stock audit for ordering needs</span></li>
+      <li><input type="checkbox"><span>Review bookings / events (sports matches, private parties) — adjust prep volume</span></li>
+    </ul>
+  </div>
+
+  <div class="alert alert-tip">
+    <span>✅</span>
+    <div><strong>Manager Mindset:</strong> The opening sets the tone. If you're rushed and scattered, the team feels it. Arrive early enough that you're calm by the time staff show up. Your energy is contagious — in both directions.</div>
+  </div>
+</div>
+
+<!-- ==================== CLOSING PROCEDURE ==================== -->
+<div class="section" id="sec-closing">
+  <h2 class="section-title">Closing Procedure</h2>
+  <p class="section-desc">End-of-day lockdown. The goal: tomorrow's opener walks into a clean, prepped, secure restaurant.</p>
+
+  <div class="daily-reset"><span class="today-date"></span> · <button onclick="resetChecklist('closing-cl')">Reset today</button></div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Kitchen Close-Down</h3>
+    <ul class="checklist" id="closing-cl-1">
+      <li><input type="checkbox"><span>All food stored, labeled (item + date), covered</span></li>
+      <li><input type="checkbox"><span>Fridge/freezer temps logged (final reading)</span></li>
+      <li><input type="checkbox"><span>All cooking surfaces cleaned, grills scraped, fryers filtered or off</span></li>
+      <li><input type="checkbox"><span>Floors swept and mopped, drains clear</span></li>
+      <li><input type="checkbox"><span>Trash taken out, bins relined</span></li>
+      <li><input type="checkbox"><span>Equipment turned off (except fridges/freezers)</span></li>
+      <li><input type="checkbox"><span>Prep list written for tomorrow</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Front of House Close</h3>
+    <ul class="checklist" id="closing-cl-2">
+      <li><input type="checkbox"><span>Last customers served, tabs closed</span></li>
+      <li><input type="checkbox"><span>Tables cleared, wiped, reset for tomorrow</span></li>
+      <li><input type="checkbox"><span>Bathrooms checked and cleaned</span></li>
+      <li><input type="checkbox"><span>Floor swept/vacuumed</span></li>
+      <li><input type="checkbox"><span>Condiments refilled, menus wiped</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Cash & Admin</h3>
+    <ul class="checklist" id="closing-cl-3">
+      <li><input type="checkbox"><span>Run end-of-day POS report (Z-report)</span></li>
+      <li><input type="checkbox"><span>Count till — compare to POS total, note variance</span></li>
+      <li><input type="checkbox"><span>Prepare bank deposit if required</span></li>
+      <li><input type="checkbox"><span>Record daily sales total, covers, average ticket</span></li>
+      <li><input type="checkbox"><span>Log any incidents, complaints, staff issues</span></li>
+      <li><input type="checkbox"><span>Review tomorrow's reservations and staffing</span></li>
+    </ul>
+  </div>
+
+
+  <div class="card">
+    <h3><span class="tag tag-casual">Pub/Casual</span> Kitchen Handover Checklist (Frog Model)</h3>
+    <ul class="checklist" id="closing-cl-5">
+      <li><input type="checkbox"><span>All daily cleaning tasks checked AND signed (not just done — documented)</span></li>
+      <li><input type="checkbox"><span>Oil temperature recorded on daily sheet</span></li>
+      <li><input type="checkbox"><span>Bins taken out — both kitchen AND salle</span></li>
+      <li><input type="checkbox"><span>Prep list for next shift completed and checked</span></li>
+      <li><input type="checkbox"><span>Plonge empty and clean</span></li>
+      <li><input type="checkbox"><span>Floor swept and mopped</span></li>
+      <li><input type="checkbox"><span>All surfaces wiped down</span></li>
+      <li><input type="checkbox"><span>Handover notes written: preps done, preps still needed, DLC alerts, stock issues, equipment problems, anything the next shift needs to know</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Security Close</h3>
+    <ul class="checklist" id="closing-cl-4">
+      <li><input type="checkbox"><span>All doors and windows locked</span></li>
+      <li><input type="checkbox"><span>Gas turned off (if applicable)</span></li>
+      <li><input type="checkbox"><span>Lights off (except security lights)</span></li>
+      <li><input type="checkbox"><span>Alarm system armed</span></li>
+      <li><input type="checkbox"><span>Final walkthrough — nobody left in building</span></li>
+    </ul>
+  </div>
+
+
+  <div class="card">
+    <h3>Cold Chain Verification (non-negotiable)</h3>
+    <ul class="checklist" id="closing-cl-cold">
+      <li><input type="checkbox"><span>Fridge/freezer closing temps logged on Trail</span></li>
+      <li><input type="checkbox"><span>Hot food cooled properly (&lt;90min to fridge temp) and stored</span></li>
+      <li><input type="checkbox"><span>All preps labelled with DLC sticker</span></li>
+      <li><input type="checkbox"><span>Walk-in final check: DLC/FIFO order, no cardboard, no bins inside</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Records & Handover Completion</h3>
+    <ul class="checklist" id="closing-cl-records">
+      <li><input type="checkbox"><span>Waste logged (weights + reasons)</span></li>
+      <li><input type="checkbox"><span>Trail app entries completed for the shift</span></li>
+      <li><input type="checkbox"><span>Cleaning checklist signed off by closing manager</span></li>
+      <li><input type="checkbox"><span>Floor swept and mopped (kitchen + service areas)</span></li>
+      <li><input type="checkbox"><span>Bins emptied, lids on, taken to designated area</span></li>
+      <li><input type="checkbox"><span>Handover notes written for next shift opener</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- ==================== HYGIENE & HACCP ==================== -->
+<div class="section" id="sec-hygiene">
+  <h2 class="section-title">Hygiene & HACCP</h2>
+  <p class="section-desc">Food safety is non-negotiable. HACCP (Hazard Analysis Critical Control Points) is the system that prevents foodborne illness. As manager, you're legally responsible.</p>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Temperature Control — The #1 Rule</h3>
+    <p>The "danger zone" is <strong>5°C to 63°C</strong> (EU standard). French cold storage targets 0-4°C as extra safety margin. Bacteria multiply rapidly in this range — especially 30-40°C. Your job: keep food out of it.</p>
+    <table class="cmp-table" style="margin-top:0.75rem">
+      <tr><th>Storage</th><th>Target</th><th>Action if exceeded</th></tr>
+      <tr><td>Fridge</td><td>0–4°C</td><td>If above 8°C: check immediately, move items, call technician</td></tr>
+      <tr><td>Freezer</td><td>-18°C or below</td><td>If above -15°C: do not refreeze thawed items, escalate</td></tr>
+      <tr><td>Hot holding</td><td>63°C or above</td><td>Food below 63°C for >2hrs must be discarded</td></tr>
+      <tr><td>Cooking (poultry)</td><td>Core temp 75°C</td><td>Use probe thermometer to verify</td></tr>
+      <tr><td>Cooling cooked food</td><td>63°C → 10°C within 2 hours</td><td>Then store at 0-3°C. Use blast chiller, ice baths, shallow containers</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Allergen Management</h3>
+    <p>In France/EU: <strong>14 major allergens</strong> must be declared. As manager you must ensure:</p>
+    <ul>
+      <li>Allergen information is available for every menu item (written, not just verbal)</li>
+      <li>Kitchen staff know which dishes contain which allergens</li>
+      <li>Cross-contamination prevention: separate utensils, surfaces, storage</li>
+      <li>When a customer declares an allergy: manager verifies with kitchen before food goes out</li>
+    </ul>
+    <div class="alert alert-critical" style="margin-top:0.75rem">
+      <span>⚠️</span>
+      <div><strong>Legal liability:</strong> An allergen incident can result in criminal prosecution of the manager. This is not optional compliance — it's personal legal exposure.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><span class="tag tag-all">All Types</span> Daily Hygiene Checks</h3>
+    <ul class="checklist" id="hygiene-cl">
+      <li><input type="checkbox"><span>Staff: clean uniforms, hair tied back, no jewelry, wounds covered with blue plasters</span></li>
+      <li><input type="checkbox"><span>Handwashing observed and stations stocked</span></li>
+      <li><input type="checkbox"><span>Fridge temps logged (morning, midday, evening)</span></li>
+      <li><input type="checkbox"><span>Use-by dates checked on all open items</span></li>
+      <li><input type="checkbox"><span>Cleaning schedule followed (signed off)</span></li>
+      <li><input type="checkbox"><span>No food stored on floor — minimum 15cm above ground</span></li>
+      <li><input type="checkbox"><span>Raw/cooked separated in storage (raw below cooked)</span></li>
+      <li><input type="checkbox"><span>Pest control signs checked (droppings, damage, sightings)</span></li>
+    </ul>
+  </div>
+
+
+  <div class="card" style="border-left: 3px solid var(--red);">
+    <h3>Real Talk: Why Kitchens Fail Audits</h3>
+    <p>Based on 6+ actual audit reports from a multi-site operation:</p>
+    <ul>
+      <li><strong>#1 failure: Documentation gaps.</strong> "Auto-controls" (delivery records, fridge temps, cleaning logs) is consistently the weakest category. Staff DO the work but DON'T record it — or record fake numbers (all deliveries logged as 4°C exactly = nobody's actually measuring).</li>
+      <li><strong>#2 failure: DLC compliance.</strong> Missing stickers, expired products still in walk-in, sauces kept past their date in prep containers instead of proper bacs. This one yo-yos: improves after an audit, slides back within weeks.</li>
+      <li><strong>#3 failure: Fridge cleanliness.</strong> The inside of service fridges is the most persistent hygiene failure across venues. It's dirty, it stays dirty, it gets called out every audit.</li>
+      <li><strong>#4 failure: Follow-through.</strong> Action plans get written after bad audits but never fully completed. The highest-value item in the simplified audit (3/50 points) is literally "was the previous action plan completed?" — because it almost never is.</li>
+    </ul>
+    <div class="alert alert-tip">
+      <span>✅</span>
+      <div><strong>Manager takeaway:</strong> Your job isn't to catch every hygiene issue yourself. It's to build a system where issues get caught AND fixed AND stay fixed. That means: daily checks (not weekly), signed documentation (not verbal), and follow-up on your own action plans.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>HACCP Documentation — What You Must Keep</h3>
+    <p>Inspectors will ask for these. Keep them organized and accessible:</p>
+    <ul>
+      <li><strong>Temperature logs</strong> — fridge, freezer, hot holding, delivery temps</li>
+      <li><strong>Cleaning schedules</strong> — signed and dated</li>
+      <li><strong>Delivery records</strong> — supplier, date, temp on arrival, condition</li>
+      <li><strong>Staff training records</strong> — who completed food safety training, when</li>
+      <li><strong>Allergen matrix</strong> — every dish mapped to its allergens</li>
+      <li><strong>Incident log</strong> — any food safety incidents, complaints, corrective actions</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>EU Allergen Reference Matrix (Regulation 1169/2011)</h3>
+    <p>14 allergens must be declared by EU law. This matrix maps allergens to common menu categories. Adapt to YOUR menu — this is the pattern, not the final list.</p>
+    <table class="cmp-table" style="font-size:0.8rem;">
+      <tr><th>Allergen</th><th>Common Sources in Restaurant Kitchens</th></tr>
+      <tr><td><strong>Gluten</strong> 🌾</td><td>Burger buns, tortillas, beer batter, breadcrumbs (panko), churros, onion rings, mozza sticks, corn fritters, mac & cheese, brownie, cookie, waffle, gyoza, nachos</td></tr>
+      <tr><td><strong>Crustaceans</strong> 🦐</td><td>Shrimp dishes, bisques, seafood platters. Often absent in burger-focused menus.</td></tr>
+      <tr><td><strong>Eggs</strong> 🥚</td><td>Mayo/aioli, burger sauces, buns, brownies, cookies, cheesecake, tiramisu, brioche, beer batter, churros, chocolate mousse, waffles</td></tr>
+      <tr><td><strong>Fish</strong> 🐟</td><td>Fish & chips, salmon dishes, Worcestershire sauce (anchovy!)</td></tr>
+      <tr><td><strong>Peanuts</strong> 🥜</td><td>Katsu sauce (check batch!), satay, some Asian-style dips. Cross-contamination risk from shared fryers.</td></tr>
+      <tr><td><strong>Soy</strong> 🌱</td><td>Soy sauce, teriyaki, Korean marinades, katsu sauce, Worcestershire, gyoza</td></tr>
+      <tr><td><strong>Milk</strong> 🥛</td><td>All cheese, mac & cheese, mozza sticks, coleslaw, cheesecake, tiramisu, mousse, brownie, cookie, cream, butter, nachos cheese, fully-loaded fries</td></tr>
+      <tr><td><strong>Tree Nuts</strong> 🌰</td><td>Pesto (pine nuts!), hazelnut desserts, pistachio items. Trace risk in shared prep areas.</td></tr>
+      <tr><td><strong>Celery</strong> 🥬</td><td>Coleslaw, salad dressings, stock/bouillon, soups. Often hidden.</td></tr>
+      <tr><td><strong>Mustard</strong> 🟡</td><td>Mustard, burger sauces, BBQ sauce, coleslaw dressing, some marinades</td></tr>
+      <tr><td><strong>Sesame</strong> ⭐</td><td>Sesame mayo, seeded buns (check batch!), Korean marinades, katsu bowls</td></tr>
+      <tr><td><strong>Sulphites</strong> 🧪</td><td>Wine-based sauces, onion jam, dried fruits, vinegar dressings, BBQ sauce. Often undeclared.</td></tr>
+      <tr><td><strong>Lupin</strong> 🌻</td><td>Rare. Some specialty flours. Check bread suppliers.</td></tr>
+      <tr><td><strong>Molluscs</strong> 🐚</td><td>Oyster sauce, some Asian sauces. Absent from most casual menus.</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--text2);"><strong>Operational rule:</strong> Keep a laminated allergen matrix at the pass. Every new dish/special gets allergen-mapped BEFORE it goes on sale. Train every team member to say: "Let me check our allergen matrix" — never guess.</p>
+  </div>
+
+</div>
+
+<!-- ==================== RUSH MANAGEMENT ==================== -->
+<div class="section" id="sec-rush">
+  <h2 class="section-title">Rush Management</h2>
+  <p class="section-desc">The lunch/dinner rush is where managers earn their salary. Your job isn't to do everyone's work — it's to keep the system flowing.</p>
+
+  <div class="card">
+    <h3>The Manager's Role During Rush</h3>
+    <p>You are the <strong>system regulator</strong>, not an extra pair of hands. If you're stuck making plates, nobody's watching the whole floor.</p>
+    <ul>
+      <li><strong>Position yourself</strong> at the pass (between kitchen and floor) — this is the control point</li>
+      <li><strong>Monitor ticket times</strong> — if a table waits 20+ minutes without food, intervene</li>
+      <li><strong>Read the room</strong> — spot tables that need attention before staff do</li>
+      <li><strong>Manage the door</strong> — control seating pace to match kitchen capacity</li>
+      <li><strong>Jump in surgically</strong> — run food, clear tables, but return to oversight fast</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Rush Escalation Ladder</h3>
+    <table class="cmp-table">
+      <tr><th>Signal</th><th>What It Means</th><th>Your Action</th></tr>
+      <tr><td>Tickets stacking</td><td>Kitchen falling behind</td><td>Check if someone's in the weeds. Redistribute or jump in for one task.</td></tr>
+      <tr><td>Tables waiting 10+ min for greeting</td><td>FOH overwhelmed</td><td>Greet tables yourself, or reassign sections temporarily.</td></tr>
+      <tr><td>Wrong dishes going out</td><td>Communication breakdown</td><td>Slow down the pass. Call out every ticket clearly before it leaves.</td></tr>
+      <tr><td>Staff snapping at each other</td><td>Stress boiling over</td><td>Brief calm word: "I see you, we've got this." Resolve after rush.</td></tr>
+      <tr><td>Customer visibly upset</td><td>Service failure</td><td>Go to table immediately. Acknowledge, apologize, fix.</td></tr>
+    </table>
+  </div>
+
+  <div class="alert alert-tip">
+    <span>✅</span>
+    <div><strong>AuDHD Tip (F2):</strong> Rush can trigger hyperfocus (good) or sensory overload (bad). Pre-plan your position and your scan pattern (kitchen → floor → door → repeat). Having a physical loop prevents freeze-up when everything's loud and fast. If you feel the overload building: one deep breath, refocus on the NEXT ticket only. Your nervous system works in sequences, not multitasking (Operator's Manual: ns-01).</div>
+  </div>
+
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>F1 (Race):</strong> During rush, when you're directing people urgently, a Black man giving rapid commands can be read differently than a white manager doing the same. This is the code-switching tax (Operator's Manual: nav-02). Practical counter: establish your authority in calm moments (pre-shift briefing, station assignments) so that during rush, people already know who's in charge. The briefing is not just operational — it's social positioning.<br>
+    <strong>F3 (Gender):</strong> Female staff in the weeds may receive less help from male colleagues than male staff in the same position. Monitor and redistribute support evenly.</div>
+  </div>
+</div>
+
+<!-- ==================== CASH & TILL ==================== -->
+<div class="section" id="sec-cash">
+  <h2 class="section-title">Cash & Till Management</h2>
+  <p class="section-desc">Cash handling errors are the fastest way to lose trust — or your job. Be methodical.</p>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Daily Cash Procedure</h3>
+    <ul>
+      <li><strong>Opening float:</strong> Count it yourself, record the amount, sign off. Never trust "it was fine yesterday."</li>
+      <li><strong>During service:</strong> Only designated staff handle the till. Manager approval for voids/discounts/refunds.</li>
+      <li><strong>Closing:</strong> Run Z-report → count physical cash → compare to POS total.</li>
+    </ul>
+    <div class="formula">Variance = Physical Cash − Expected Cash (from POS)</div>
+    <p>Acceptable variance: ±€5. Anything beyond that needs investigation and documentation.</p>
+  </div>
+
+  <div class="card">
+    <h3>Red Flags to Watch</h3>
+    <ul>
+      <li><strong>Frequent voids</strong> by the same staff member — could indicate theft or training gap</li>
+      <li><strong>Cash always short</strong> on the same shift — pattern points to a person or process</li>
+      <li><strong>No-sale openings</strong> — till opened without a transaction (needs explanation)</li>
+      <li><strong>Discounts without manager approval</strong> — tighten the approval chain</li>
+    </ul>
+    <div class="alert alert-warn">
+      <span>⚠️</span>
+      <div>Never accuse — investigate. Check camera footage + POS logs before having a conversation. "I noticed a variance" is better than "you're stealing."</div>
+    </div>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>F1 (Race):</strong> Cash discrepancies + Black manager = heightened suspicion from ownership. Protect yourself: always count with a witness or on camera. Document everything. Your paper trail is your shield. This isn't paranoia — it's the operational reality of being a Black person responsible for money in a system with documented racial bias.</div>
+  </div>
+</div>
+
+<!-- ==================== INCIDENTS ==================== -->
+<div class="section" id="sec-incidents">
+  <h2 class="section-title">Incident Protocols</h2>
+  <p class="section-desc">When things go wrong, your response speed and clarity define you as a manager.</p>
+
+  <div class="card">
+    <h3><span class="tag tag-critical">Critical</span> Customer Complaint — The LAST Framework</h3>
+    <ul>
+      <li><strong>L</strong>isten — Let them talk. Don't interrupt. Show you're hearing them.</li>
+      <li><strong>A</strong>pologize — "I'm sorry this happened" (not "I'm sorry you feel that way").</li>
+      <li><strong>S</strong>olve — Offer a concrete fix: remake the dish, remove from bill, offer a free item.</li>
+      <li><strong>T</strong>hank — "Thank you for telling me, it helps us improve."</li>
+    </ul>
+    <div class="alert alert-tip">
+      <span>✅</span>
+      <div>Most people don't want free stuff — they want to be heard. A genuine apology + quick fix resolves 90% of complaints.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Staff Injury</h3>
+    <ul>
+      <li>Administer first aid immediately (burns: cold water 10+ min)</li>
+      <li>If serious: call emergency services, do not move the person</li>
+      <li>Record in accident book: what happened, when, witnesses</li>
+      <li>Report to owner/area manager same day</li>
+      <li>Review: could this have been prevented? Fix the root cause.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Foodborne Illness Report</h3>
+    <ul>
+      <li>Take the complaint seriously — record every detail (what they ate, when, symptoms)</li>
+      <li>Isolate the suspected batch immediately</li>
+      <li>Notify owner/management — this may require contacting health authorities</li>
+      <li>Do NOT destroy evidence (food samples, packaging)</li>
+      <li>Review HACCP records for the day in question</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Aggressive Customer / Security</h3>
+    <ul>
+      <li>Stay calm. Lower your voice (it forces them to lower theirs).</li>
+      <li>Do not engage physically. De-escalate or create distance.</li>
+      <li>If threat is real: call police, protect staff and other customers first.</li>
+      <li>Document everything after the fact.</li>
+    </ul>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter — Incidents:</strong><br>
+    <strong>F1 (Race):</strong> When police are called, a Black manager on scene changes the dynamic. You may be treated as the problem, not the person who called. Strategy: when calling police, immediately identify yourself as the manager. Have your name badge visible. If possible, have a staff member (ideally white, if we're being honest about how this works) meet the officers at the door and point them to you. Documentation is your shield: incident log, timestamps, witness names.<br>
+    <strong>F2 (AuDHD):</strong> Incidents are sensory bombs — shouting, adrenaline, multiple inputs at once. Your freeze response may activate before your problem-solving kicks in. The LAST framework (Listen, Apologize, Solve, Thank) works precisely because it's sequential — follow the steps, don't try to process the whole situation at once. Having it memorized means you don't need executive function to start responding.<br>
+    <strong>F3 (Gender):</strong> Female staff may face more aggressive or sexualized behavior from problem customers. When a female team member reports aggression, take it at face value — don't minimize or suggest she "handle it differently." Your intervention as manager protects her and signals to the whole team that this behavior isn't tolerated.</div>
+  </div>
+</div>
+
+<!-- ==================== SCHEDULING ==================== -->
+<div class="section" id="sec-scheduling">
+  <h2 class="section-title">Scheduling</h2>
+  <p class="section-desc">A good schedule balances coverage, labor cost, fairness, and legal compliance. A bad one breaks teams.</p>
+
+  <div class="card">
+    <h3>Scheduling Principles</h3>
+    <ul>
+      <li><strong>Staff to demand, not to habit.</strong> Check historical sales data for each shift — don't just copy last week.</li>
+      <li><strong>Post schedules 2 weeks out minimum.</strong> Late schedules destroy morale and prevent people from planning their lives.</li>
+      <li><strong>Track labor % in real time.</strong> Target: 25-35% of revenue. Adjust mid-week if sales are trending up or down.</li>
+      <li><strong>Cross-train everyone.</strong> If only one person can do a critical role, you're one sick day from chaos.</li>
+      <li><strong>Respect legal requirements.</strong> In France (HCR convention): 11h minimum rest between shifts, 39h/week is the effective standard (35h base + 4h at +10%), 2 rest days/week (can be non-consecutive), max 48h/week absolute.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Dealing with Call-Outs</h3>
+    <ul>
+      <li><strong>Have a call list</strong> — ranked by availability and role capability</li>
+      <li><strong>Ask, don't guilt.</strong> "Can you cover today?" not "You have to come in"</li>
+      <li><strong>Track patterns.</strong> Frequent same-day call-outs on the same day of week = a conversation needed</li>
+      <li><strong>Worst case:</strong> You cover the gap yourself. This is why you should be trained on every station.</li>
+    </ul>
+  </div>
+
+
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter Notes:</strong><br>
+    <strong>F1 (Race):</strong> As a Black manager in France, your scheduling decisions may face more pushback than a white manager's identical decisions. Research on racial discrimination in French restaurant hiring (TEPP 2025, INSEE studies) shows systemic bias. Strategy: document your reasoning. "I scheduled based on projected covers" is harder to challenge than a verbal decision.<br>
+    <strong>F2 (AuDHD):</strong> Scheduling is a high-executive-function task — multiple variables, fairness tracking, future projection. Do it at your peak energy window, not end of shift when you're depleted. Use a template that reduces decisions to fill-in-the-blank.<br>
+    <strong>F3 (Gender):</strong> Female staff may face pressure to accommodate others' schedules more than male staff. Monitor for this pattern in swap requests.</div>
+  </div>
+
+  <div class="alert alert-info">
+    <span>💡</span>
+    <div><strong>France-specific:</strong> Code du travail imposes strict scheduling rules. Changing a posted schedule less than 7 days out requires employee agreement. Dimanche travaillé (Sunday work) has specific compensation rules. Know your convention collective (sector-specific labor agreement).</div>
+  </div>
+</div>
+
+<!-- ==================== DELEGATION ==================== -->
+<div class="section" id="sec-delegation">
+  <h2 class="section-title">Delegation</h2>
+  <p class="section-desc">If you're doing everything yourself, you're not managing — you're just the hardest-working employee. Delegation is the core management skill.</p>
+
+  <div class="card">
+    <h3>The Delegation Framework</h3>
+    <ul>
+      <li><strong>What</strong> — Be specific: "I need you to set up tables 12-18 with full settings" not "handle the floor"</li>
+      <li><strong>Why</strong> — Give context: "We have a group of 30 at 8pm" → people work better when they understand the reason</li>
+      <li><strong>When</strong> — Set a deadline: "Done by 7:30" not "when you can"</li>
+      <li><strong>Check</strong> — Verify it was done to standard. Not micromanaging — quality control.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>What to Delegate vs. Keep</h3>
+    <table class="cmp-table">
+      <tr><th>Delegate</th><th>Keep</th></tr>
+      <tr><td>Setup and breakdown tasks</td><td>Cash counting and deposits</td></tr>
+      <tr><td>Routine cleaning assignments</td><td>Supplier negotiations</td></tr>
+      <tr><td>Running food during rush</td><td>Disciplinary conversations</td></tr>
+      <tr><td>Inventory counting (with training)</td><td>Schedule decisions</td></tr>
+      <tr><td>Training new hires (to experienced staff)</td><td>Customer escalations</td></tr>
+    </table>
+  </div>
+
+  <div class="alert alert-tip">
+    <span>✅</span>
+    <div><strong>AuDHD Tip:</strong> Delegation is hard when you hyperfocus on doing things "right." The standard doesn't have to be YOUR standard — it has to be the RESTAURANT'S standard. If it's 80% as good as you'd do it, that's a win. Perfect is the enemy of done.</div>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter — Delegation:</strong><br>
+    <strong>F1 (Race):</strong> When a Black manager delegates, the response isn't always the same as when a white manager delegates. Research on racial authority bias shows that directives from Black leaders face more pushback and are more likely to be "forgotten." Counter: delegate with specifics (What, Why, When, Check) so the task is unambiguous. Vague delegation leaves room for selective compliance.<br>
+    <strong>F2 (AuDHD):</strong> Your pattern-recognition strength means you often see the fastest path to completion — and get frustrated when others don't. But explaining your reasoning ("I need this done this way because...") isn't micromanaging, it's translating your pattern recognition into instructions NT brains can follow.<br>
+    <strong>F3 (Gender):</strong> Women who delegate firmly are rated as "bossy" or "aggressive" more than men doing the same. If you manage female staff, watch whether they face this dynamic from the rest of the team when they take charge of delegated tasks.</div>
+  </div>
+</div>
+
+<!-- ==================== CONFLICT RESOLUTION ==================== -->
+<div class="section" id="sec-conflict">
+  <h2 class="section-title">Conflict Resolution</h2>
+  <p class="section-desc">Conflict is normal in high-pressure kitchens. Your job: contain it, resolve it, prevent it from becoming culture.</p>
+
+  <div class="card">
+    <h3>During Service — Contain Mode</h3>
+    <p>Never resolve conflicts during rush. The protocol:</p>
+    <ul>
+      <li>Separate the people: "Hey, I need you on station X for now."</li>
+      <li>Brief, firm: "We'll sort this out after service. Right now, we serve."</li>
+      <li>Note what happened so you don't forget (phone note, paper).</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>After Service — Resolve Mode</h3>
+    <ul>
+      <li><strong>Hear both sides separately first.</strong> Never triangulate in the moment.</li>
+      <li><strong>Focus on behavior, not character:</strong> "You raised your voice at Alex during service" not "You're disrespectful."</li>
+      <li><strong>Find the root:</strong> Most conflicts are about workload, fairness, or communication breakdowns — not personality.</li>
+      <li><strong>Agree on next steps together:</strong> "What would make this work better for both of you?"</li>
+      <li><strong>Document if it's serious.</strong> If this could escalate, you need a paper trail.</li>
+    </ul>
+  </div>
+
+  <div class="alert alert-warn">
+    <span>⚠️</span>
+    <div><strong>Never tolerate:</strong> harassment, discrimination, or threats. These are immediate escalation to owner/HR, not mediation material. Know the line between conflict and misconduct.</div>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter Notes:</strong><br>
+    <strong>F1 (Race):</strong> As a Black manager mediating conflict, you face a specific trap: if you show emotion, you risk being labeled "angry" or "aggressive" — a stereotype that doesn't apply to white managers showing the same intensity. Strategy: stay factual, stay calm, but don't over-correct into emotional suppression. That's masking cost you don't need to pay (Operator's Manual: nav-02, code-switching). The goal is conscious control, not anxious performance.<br>
+    <strong>F2 (AuDHD):</strong> Conflict is sensory + emotional overload. Your nervous system may go into fight/flight faster than you realize (Operator's Manual: ns-01, reg-01). The "contain during service / resolve after" protocol isn't just good management — it's self-regulation. You need the time gap to process. Use it.<br>
+    <strong>F3 (Gender):</strong> Watch for gendered patterns: female staff raising the same concerns as male staff being dismissed as "emotional" or "dramatic." Your job as manager is to hear the content, not evaluate the delivery through gender bias.</div>
+  </div>
+</div>
+
+<!-- ==================== PERFORMANCE ==================== -->
+<div class="section" id="sec-performance">
+  <h2 class="section-title">Performance Management</h2>
+  <p class="section-desc">Good performance management isn't annual reviews — it's daily micro-feedback that keeps people growing.</p>
+
+  <div class="card">
+    <h3>Daily Feedback (The 80%)</h3>
+    <p>Most performance management happens in 10-second moments:</p>
+    <ul>
+      <li><strong>Catch people doing things right:</strong> "Great upsell on table 7" — specific praise builds repetition</li>
+      <li><strong>Correct in private, praise in public.</strong> Pull someone aside: "Hey, quick note on how you plated that..."</li>
+      <li><strong>Be immediate.</strong> Feedback 3 days later is useless. Do it in the moment or right after service.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>The Difficult Conversation Framework</h3>
+    <p>For performance issues that need a formal sit-down:</p>
+    <ul>
+      <li><strong>Facts first:</strong> "You were 15 minutes late 3 times this week" — not "you're unreliable"</li>
+      <li><strong>Impact:</strong> "That means your section wasn't set, and your teammates had to cover"</li>
+      <li><strong>Their perspective:</strong> "What's going on?" — there might be context you don't know</li>
+      <li><strong>Clear expectation:</strong> "I need you on time for every shift. Can we agree on that?"</li>
+      <li><strong>Support offer:</strong> "Is there anything that would help? Different shift time?"</li>
+      <li><strong>Consequence:</strong> "If it continues, we'll need to go formal" — state it clearly, not as a threat</li>
+    </ul>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter Notes:</strong><br>
+    <strong>F1 (Race):</strong> Performance evaluation is where unconscious bias hits hardest. Studies show identical behavior is rated differently by race. As a Black manager, your credibility in giving feedback may be questioned — especially when correcting white staff. Counter: always tie feedback to observable behavior + measurable impact. "Table 7 waited 12 minutes" is unchallengeable. "You seemed unfocused" is subjective and vulnerable to pushback.<br>
+    <strong>F2 (AuDHD):</strong> "Be immediate" with feedback is great advice, but your processing speed may need a beat. It's OK to say "quick word after this table is served" to give yourself 60 seconds to organize your thoughts. The feedback is still timely. Blurting out half-formed corrections is worse than a brief, structured one.<br>
+    <strong>F3 (Gender):</strong> Performance research shows women receive more personality-based feedback ("be more confident") while men get skill-based feedback ("improve your plating speed"). Give everyone behavior-based, skill-based feedback.</div>
+  </div>
+
+
+  <div class="card">
+    <h3>Shift Feedback Tags — Quick Assessment System</h3>
+    <p>Use these standardized tags to give structured, consistent feedback after every shift. Avoids vague praise ("good job") and vague criticism ("try harder"). Each tag = specific observable behavior.</p>
+    <table class="cmp-table">
+      <tr><th colspan="2" style="background:var(--green); color:white;">Motivational (what went right)</th></tr>
+      <tr><td><strong>Reliable</strong></td><td>On time, consistent, does what they said they'd do. The person you don't worry about.</td></tr>
+      <tr><td><strong>Fast</strong></td><td>High output under pressure. Keeps up during rush without sacrificing quality.</td></tr>
+      <tr><td><strong>Clean Station</strong></td><td>Workspace stays organized during service. Clean-as-you-go without being reminded.</td></tr>
+      <tr><td><strong>Initiative</strong></td><td>Sees what needs doing and does it. Doesn't wait to be told. Anticipates next steps.</td></tr>
+      <tr><th colspan="2" style="background:var(--red); color:white;">Developmental (what needs attention)</th></tr>
+      <tr><td><strong>Late</strong></td><td>Arrival time issue. Log the pattern — one-off vs recurring changes the conversation.</td></tr>
+      <tr><td><strong>Slow</strong></td><td>Output below expected pace. May be training issue, may be motivation. Investigate before judging.</td></tr>
+      <tr><td><strong>Messy Station</strong></td><td>Workspace disorganized, cleaning not happening during service. Safety + efficiency issue.</td></tr>
+      <tr><td><strong>Attitude</strong></td><td>Resistance to feedback, negative impact on team energy. Address same shift — never let it sit.</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--text2);"><strong>Usage:</strong> Tag each team member after every shift. After 2 weeks, patterns emerge — "always Fast but Messy Station" tells you exactly what to coach. Export tags weekly for 1-on-1 conversations.</p>
+  </div>
+
+</div>
+
+<!-- ==================== ONBOARDING ==================== -->
+<div class="section" id="sec-onboarding">
+  <h2 class="section-title">Onboarding New Staff</h2>
+  <p class="section-desc">First impressions set the trajectory. A structured first week prevents months of confusion.</p>
+
+  <div class="card">
+    <h3>Day 1 Checklist</h3>
+    <ul class="checklist" id="onboarding-cl">
+      <li><input type="checkbox"><span>Uniform sorted, locker assigned, staff meal explained</span></li>
+      <li><input type="checkbox"><span>Tour of premises: kitchen, storage, bathrooms, fire exits, staff area</span></li>
+      <li><input type="checkbox"><span>Introduce to every team member by name and role</span></li>
+      <li><input type="checkbox"><span>Food safety basics: handwashing, allergens, temp control</span></li>
+      <li><input type="checkbox"><span>Shadow an experienced staff member for full shift</span></li>
+      <li><input type="checkbox"><span>Show them the menu — have them taste key dishes if possible</span></li>
+      <li><input type="checkbox"><span>Explain scheduling, breaks, communication channels</span></li>
+      <li><input type="checkbox"><span>End of day: "How was it? What questions do you have?"</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Week 1 Milestones</h3>
+    <ul>
+      <li><strong>Day 1-2:</strong> Shadow only. Learn layout, names, rhythm.</li>
+      <li><strong>Day 3-4:</strong> Guided practice. They do the work, mentor watches and corrects.</li>
+      <li><strong>Day 5-7:</strong> Solo with safety net. They handle their station, mentor nearby.</li>
+      <li><strong>End of Week 1:</strong> Quick check-in. "What's clicking? What's confusing?"</li>
+    </ul>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter — Onboarding:</strong><br>
+    <strong>F1 (Race):</strong> New hires form their impression of you in the first hours. As a Black manager, you may notice some new staff defaulting to a more casual register with you than they would with a white manager — or the opposite, being visibly uncomfortable. Neither reaction is about you. Establish professionalism through structure: the onboarding checklist itself signals competence. Let the system speak before you have to.<br>
+    <strong>F2 (AuDHD):</strong> Onboarding days are high-social-demand. You're performing "welcoming manager" for hours straight — that's masking-heavy. Schedule something low-demand after an onboarding day. Also: your natural communication style (direct, specific, structured) is actually better for onboarding than the vague "just watch and learn" most managers default to. Lean into it.<br>
+    <strong>F3 (Gender):</strong> Female new hires may receive less technical training and more "soft" orientation than male new hires in the same role. Use the same checklist for everyone regardless of gender — it prevents unconscious sorting.</div>
+  </div>
+</div>
+
+<!-- ==================== COMMUNICATION ==================== -->
+<div class="section" id="sec-communication">
+  <h2 class="section-title">Communication Scripts</h2>
+  <p class="section-desc">Pre-built phrases for the situations you'll face most. Having these ready removes the "what do I say?" freeze.</p>
+
+  <div class="card">
+    <h3>Pre-Shift Briefing Template</h3>
+    <p>"Good [morning/evening] everyone. Quick briefing:<br>
+    — We're expecting [X] covers today. [Busy/normal/quiet].<br>
+    — Specials: [list them].<br>
+    — 86'd: [anything out of stock].<br>
+    — VIPs/large parties: [if any].<br>
+    — Today's focus: [one thing — upsells, table turns, cleanliness].<br>
+    — Questions? Let's have a good shift."</p>
+  </div>
+
+  <div class="card">
+    <h3>Correcting a Mistake (Staff)</h3>
+    <p>"Hey [name], quick word. I noticed [specific behavior]. The issue is [impact]. Going forward, can you [specific correction]? Cool, thanks."</p>
+    <p style="margin-top:0.5rem; color:var(--text2); font-size:0.82rem;">Example: "Hey Marco, quick word. I noticed the fridge wasn't logged at midday. If we miss a reading and there's a temp spike, we won't catch it. Can you set a phone alarm for 2pm so it doesn't slip? Cool, thanks."</p>
+  </div>
+
+  <div class="card">
+    <h3>Customer Apologizing</h3>
+    <p>"I'm really sorry about [specific issue]. That's not the experience we want you to have. Let me [specific fix] right now. [And I'd like to offer X as well — if warranted]."</p>
+  </div>
+
+  <div class="card">
+    <h3>Saying No to a Request You Can't Fulfill</h3>
+    <p>"I understand you'd like [X]. Unfortunately, I'm not able to do that because [honest reason]. What I <em>can</em> do is [alternative]. Would that work?"</p>
+  </div>
+  <div class="alert alert-warn">
+    <span>🔍</span>
+    <div><strong>Triple Filter — Communication Tax:</strong><br>
+    As a Black AuDHD manager, you're running three communication layers simultaneously: (1) autistic-to-neurotypical translation (saying things the "expected" way), (2) code-switching across racial/cultural registers, and (3) the actual management communication. That's 3x the cognitive load of a white neurotypical manager saying the same thing. The scripts above exist to REDUCE this load — memorized phrases mean you're not constructing from scratch every time. This is nav-02 (code-switching) + energy-01 (energy pools) in practice.</div>
+  </div>
+</div>
+
+<!-- ==================== P&L ==================== -->
+<div class="section" id="sec-pnl">
+  <h2 class="section-title">Reading a P&L</h2>
+  <p class="section-desc">The Profit & Loss statement tells you if the restaurant is making money and where the money goes. You don't need to be an accountant — you need to know what to look at.</p>
+
+  <div class="card">
+    <h3>The P&L Structure (Simplified)</h3>
+    <table class="cmp-table">
+      <tr><th>Line</th><th>What It Is</th><th>Your Role</th></tr>
+      <tr><td><strong>Revenue</strong></td><td>Total money from sales</td><td>Drive it: covers × average ticket</td></tr>
+      <tr><td><strong>− COGS (food cost)</strong></td><td>Cost of ingredients used</td><td>Control it: ordering, waste, portioning</td></tr>
+      <tr><td><strong>= Gross Profit</strong></td><td>Revenue minus food cost</td><td>Your margin before labor and overhead</td></tr>
+      <tr><td><strong>− Labor</strong></td><td>All staff wages + charges</td><td>Control it: scheduling to demand</td></tr>
+      <tr><td><strong>= Prime Cost</strong></td><td>COGS + Labor combined</td><td>THE number. Target: 55-65% of revenue</td></tr>
+      <tr><td><strong>− Operating expenses</strong></td><td>Rent, utilities, insurance, supplies</td><td>Mostly fixed — flag anomalies</td></tr>
+      <tr><td><strong>= Net Profit</strong></td><td>What's actually left</td><td>Average: 3-5%. Top performers: up to 10%. Very thin margins.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>What to Focus On</h3>
+    <p>As a manager, you directly control 2 of the 3 biggest cost lines:</p>
+    <ul>
+      <li><strong>Food cost (COGS):</strong> 28-35% is typical (2024 NRA data). You control this through portioning, ordering, waste, and menu engineering.</li>
+      <li><strong>Labor cost:</strong> 25-35% depending on restaurant type. You control this through scheduling.</li>
+      <li><strong>Revenue:</strong> You influence this through table turns, upselling training, and not losing customers.</li>
+    </ul>
+    <div class="formula">Prime Cost = Food Cost % + Labor Cost %</div>
+    <p>If prime cost exceeds 65%, the restaurant is probably losing money — even if it looks busy.</p>
+  </div>
+
+  <div class="alert alert-info">
+    <span>💡</span>
+    <div><strong>Interview insight:</strong> When they ask "what would you do to improve profitability?" — your answer should reference prime cost. It shows you think in systems, not just "work harder."</div>
+  </div>
+</div>
+
+<!-- ==================== FOOD COST ==================== -->
+<div class="section" id="sec-foodcost">
+  <h2 class="section-title">Food Cost Management</h2>
+  <p class="section-desc">Food cost is the percentage of revenue spent on ingredients. It's the number that separates profitable restaurants from failing ones.</p>
+
+  <div class="card">
+    <h3>The Formula</h3>
+    <div class="formula">Food Cost % = (Cost of Goods Sold ÷ Food Revenue) × 100</div>
+    <p>Example: If you sold €10,000 in food and used €3,000 in ingredients → 30% food cost.</p>
+    <table class="cmp-table" style="margin-top:0.75rem">
+      <tr><th>Type</th><th>Typical Target</th></tr>
+      <tr><td>QSR / Fast food</td><td>28-32%</td></tr>
+      <tr><td>Casual dining</td><td>30-34%</td></tr>
+      <tr><td>Fine dining</td><td>32-35%</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>The 5 Levers You Control</h3>
+    <ul>
+      <li><strong>Portioning:</strong> Standardized recipes with exact weights. "A handful" is not a portion.</li>
+      <li><strong>Ordering:</strong> Order to projected sales, not to fill the shelves. Over-ordering = waste.</li>
+      <li><strong>Receiving:</strong> Check every delivery: quantity, quality, temperature. Reject what doesn't meet standards.</li>
+      <li><strong>Storage:</strong> FIFO (First In First Out). Rotate stock religiously.</li>
+      <li><strong>Waste tracking:</strong> If you don't measure it, you can't manage it. Log every waste event.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Menu Engineering Basics</h3>
+    <p>Every menu item has two dimensions: <strong>popularity</strong> and <strong>profitability</strong>.</p>
+    <table class="cmp-table">
+      <tr><th></th><th>High Popularity</th><th>Low Popularity</th></tr>
+      <tr><td><strong>High Margin</strong></td><td>⭐ Stars — promote these</td><td>🧩 Puzzles — reposition or rebrand</td></tr>
+      <tr><td><strong>Low Margin</strong></td><td>🐴 Workhorses — raise price or reduce cost</td><td>🐕 Dogs — consider removing</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== LABOR COST ==================== -->
+<div class="section" id="sec-laborcost">
+  <h2 class="section-title">Labor Cost Management</h2>
+  <p class="section-desc">Labor is usually the biggest or second-biggest expense. Scheduling is the main tool you have to control it.</p>
+
+  <div class="card">
+    <h3>The Formula</h3>
+    <div class="formula">Labor Cost % = (Total Labor Costs ÷ Total Revenue) × 100</div>
+    <p>Total labor = wages + social charges + overtime + benefits. In France, charges patronales add 25-42% on top of gross salary (varies by wage level). Near SMIC: as low as 5-10% thanks to RGDU exoneration (2026 reform). Higher salaries: up to 40%+.</p>
+    <table class="cmp-table" style="margin-top:0.75rem">
+      <tr><th>Type</th><th>Typical Target</th></tr>
+      <tr><td>QSR / Fast food</td><td>28-32%</td></tr>
+      <tr><td>Casual dining / Full-service</td><td>33-37%</td></tr>
+      <tr><td>Fine dining</td><td>35-40%</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>How to Control Labor Cost</h3>
+    <ul>
+      <li><strong>Schedule to sales forecast:</strong> Busy Friday = full team. Dead Tuesday = skeleton crew. Don't schedule from habit.</li>
+      <li><strong>Stagger start times:</strong> Not everyone needs to arrive at the same time. Prep cook at 9, line cook at 10, FOH at 11.</li>
+      <li><strong>Cut early when it's dead:</strong> "Hey, it's quiet — want to head home early?" Most staff appreciate it. Track who you send home to keep it fair.</li>
+      <li><strong>Minimize overtime:</strong> In HCR convention: 36-39h = +10%, 40-43h = +20%, 44h+ = +50%. Lower than standard rates but still adds up. Contingent: 360h/year max. Track weekly hours actively.</li>
+      <li><strong>Cross-training:</strong> A server who can bartend, a line cook who can prep = flexible scheduling with fewer total hours.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== ORDERING & INVENTORY ==================== -->
+<div class="section" id="sec-ordering">
+  <h2 class="section-title">Ordering & Inventory</h2>
+  <p class="section-desc">Ordering is where food cost is won or lost. Order too much = waste. Order too little = 86'd items and lost revenue.</p>
+
+  <div class="card">
+    <h3>The Ordering Process</h3>
+    <ul>
+      <li><strong>Count current stock</strong> (par check)</li>
+      <li><strong>Check upcoming covers</strong> (reservations + historical data for that day)</li>
+      <li><strong>Calculate need:</strong> Projected usage − current stock = order quantity</li>
+      <li><strong>Compare to par levels</strong> (minimum stock you should always have)</li>
+      <li><strong>Place order with enough lead time</strong> (know each supplier's delivery schedule)</li>
+    </ul>
+    <div class="formula">Order Quantity = Par Level − Current Stock + Safety Buffer</div>
+  </div>
+
+  <div class="card">
+    <h3>Inventory Best Practices</h3>
+    <ul>
+      <li><strong>FIFO:</strong> First In, First Out. New deliveries go BEHIND existing stock.</li>
+      <li><strong>Weekly full count:</strong> Same day each week, same person, same method. Consistency matters more than precision.</li>
+      <li><strong>Date everything:</strong> If it's not labeled, it doesn't exist (treat as expired).</li>
+      <li><strong>Lock high-value items:</strong> Expensive proteins, alcohol — controlled access.</li>
+      <li><strong>Track variance:</strong> Theoretical usage (recipes × dishes sold) vs. actual usage (inventory count). Gap = waste, theft, or portioning issues.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== WASTE ==================== -->
+<div class="section" id="sec-waste">
+  <h2 class="section-title">Waste Tracking</h2>
+  <p class="section-desc">Every item in the bin is money you already spent. You can't eliminate waste, but you can minimize and understand it.</p>
+
+  <div class="card">
+    <h3>Types of Waste</h3>
+    <table class="cmp-table">
+      <tr><th>Type</th><th>Example</th><th>Fix</th></tr>
+      <tr><td>Prep waste</td><td>Over-prepping, trimmings</td><td>Better forecasting, use trimmings (stocks, specials)</td></tr>
+      <tr><td>Spoilage</td><td>Expired items, bad storage</td><td>FIFO, tighter ordering, proper storage temps</td></tr>
+      <tr><td>Plate waste</td><td>Customers leaving food</td><td>Portion review — maybe portions are too large</td></tr>
+      <tr><td>Error waste</td><td>Wrong orders, remakes</td><td>Better communication, ticket discipline</td></tr>
+      <tr><td>Theft</td><td>Staff taking food home</td><td>Clear policy, controlled access, staff meals</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Setting Up a Waste Log</h3>
+    <p>Simple is better. You need 4 columns:</p>
+    <table class="cmp-table">
+      <tr><th>Date/Time</th><th>Item</th><th>Quantity</th><th>Reason</th></tr>
+      <tr><td>11/05 14:30</td><td>Salmon fillet</td><td>2 portions</td><td>Dropped on floor</td></tr>
+      <tr><td>11/05 22:00</td><td>Mixed salad prep</td><td>~500g</td><td>Over-prepped, expired</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--text2);">Review the waste log weekly. Look for patterns: same item? Same time? Same cause? That's where your intervention goes.</p>
+  </div>
+</div>
+
+<!-- ==================== BREAK-EVEN ==================== -->
+<div class="section" id="sec-breakeven">
+  <h2 class="section-title">Break-Even & Margins</h2>
+  <p class="section-desc">Break-even is the point where revenue covers all costs. Below it, you're losing money. Above it, you're profitable.</p>
+
+  <div class="card">
+    <h3>Break-Even Calculation</h3>
+    <div class="formula">Break-Even Revenue = Fixed Costs ÷ (1 − Variable Cost %)</div>
+    <p>Example: Rent + utilities + insurance = €15,000/month. Variable costs (food + labor) = 60% of revenue.</p>
+    <div class="formula">€15,000 ÷ (1 − 0.60) = €15,000 ÷ 0.40 = €37,500/month needed to break even</div>
+    <p style="margin-top:0.5rem">That means: €37,500 in sales before you make €1 of profit. Everything above that is your margin.</p>
+  </div>
+
+  <div class="card">
+    <h3>Key Margin Concepts</h3>
+    <ul>
+      <li><strong>Gross margin:</strong> Revenue − food cost. Shows how much you keep after ingredients. Target: 65-72%.</li>
+      <li><strong>Contribution margin:</strong> Revenue − all variable costs. What each sale contributes to covering fixed costs.</li>
+      <li><strong>Net margin:</strong> What's left after everything. Restaurants typically: 3-10%. Yes, it's thin.</li>
+    </ul>
+  </div>
+
+  <div class="alert alert-info">
+    <span>💡</span>
+    <div>Restaurants are high-revenue, low-margin businesses. A 5% net margin on €50,000/month revenue = €2,500 profit. A 2% food cost improvement on that same revenue = €1,000 saved. Small percentages, big money.</div>
+  </div>
+</div>
+
+
+<!-- ==================== CASE STUDY: THE FROG ==================== -->
+<div class="section" id="sec-frog">
+  <h2 class="section-title">Case Study: The Frog Pubs</h2>
+  <p class="section-desc">Real operational data from a multi-site pub/restaurant chain in Paris (~8 venues). This isn't textbook theory — these are actual numbers, actual failures, and actual systems from a real operation you've worked in.</p>
+
+  <div class="alert alert-info">
+    <span>💡</span>
+    <div><strong>Why this matters:</strong> You have 6+ years of insider operational knowledge from The Frog. In interviews, you can reference real systems, real metrics, and real problems — not just textbook answers. This section maps that experience to management concepts.</div>
+  </div>
+
+  <div class="card">
+    <h3>Real P&L Data — What Restaurant Numbers Actually Look Like</h3>
+    <p>Weekly P&L from 10 Frog pubs (June 2020, COVID reopening — terrasses only):</p>
+    <table class="cmp-table">
+      <tr><th>Venue</th><th>Sales HT</th><th>Staff Cost %</th><th>Operating Profit</th></tr>
+      <tr><td>Bercy (highest)</td><td>€31,754</td><td>36%</td><td>€11,352</td></tr>
+      <tr><td>Library</td><td>€26,855</td><td>32%</td><td>€11,251</td></tr>
+      <tr><td>Revolution</td><td>€8,749</td><td>35%</td><td>€2,718</td></tr>
+      <tr><td>Hop House</td><td>€4,186</td><td>34%</td><td>€1,418</td></tr>
+      <tr><td>Princess</td><td>€2,078</td><td>14%</td><td>€1,146</td></tr>
+      <tr><td>Underground (worst)</td><td>€953</td><td>88%</td><td>€354</td></tr>
+      <tr><td><strong>ALL PUBS</strong></td><td><strong>€91,130</strong></td><td><strong>34%</strong></td><td><strong>€33,969</strong></td></tr>
+    </table>
+    <p style="margin-top:0.75rem; font-size:0.85rem;"><strong>Staff cost target: 30% of HT sales.</strong> Above 30% = eroding profit. Underground at 88% shows what happens when a low-volume venue is overstaffed.</p>
+    <p style="margin-top:0.5rem; font-size:0.85rem;"><strong>Company-wide numbers:</strong> Monthly salary bill ~€400K + ~€250K charges sociales = €650K/month. Annual rent across all sites: ~€1.5M (= €4,000/day). ~200 suppliers.</p>
+  </div>
+
+  <div class="card">
+    <h3>Real Salary Data — HCR Level Scale (from actual payslips)</h3>
+    <table class="cmp-table">
+      <tr><th>Role</th><th>HCR Level</th><th>Hourly Rate</th><th>Monthly Net</th><th>Employer Cost</th></tr>
+      <tr><td>Serveur</td><td>Niveau 1, Éch. 2</td><td>€10.15/h</td><td>~€1,500-1,580</td><td>—</td></tr>
+      <tr><td>Shift Manager</td><td>Niveau 2, Éch. 2</td><td>€13.18/h</td><td>~€1,728</td><td>—</td></tr>
+      <tr><td>Pub Manager/Directeur</td><td>Niveau 5, Éch. 1</td><td>Cadre forfait (218 days/yr)</td><td>~€2,716</td><td>~€5,054/mo</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.85rem;"><strong>Avantage en nature repas:</strong> €4.01-4.22/meal (staff meals counted as taxable benefit in HCR). This appears on every payslip.</p>
+    <p style="margin-top:0.25rem; font-size:0.85rem;"><strong>Overtime at Frog:</strong> Shift Managers regularly did 15-33h supplementary/month (at HCR rates: 110%, 120%, 150%).</p>
+  </div>
+
+  <div class="card">
+    <h3>The P&L Structure That Actually Works</h3>
+    <p>Nicolas (best-performing GM at Hop House) used this daily P&L model:</p>
+    <ul>
+      <li><strong>AM/PM split:</strong> Every day split into morning and evening P&L</li>
+      <li><strong>Sales breakdown:</strong> Beer / Wet (drinks) / Food — tracked separately with percentages</li>
+      <li><strong>Milestones:</strong> Hourly sales targets (Bronze/Silver/Gold) vs. staff cost ratio per hour</li>
+      <li><strong>Margin target:</strong> 75% of HT sales</li>
+      <li><strong>Weekly comparison:</strong> vs. last week + vs. last year same week</li>
+      <li><strong>SM Checklist Control:</strong> Opening/HO/Kitchen/Brewery/Closing — Done/Not done tracking</li>
+    </ul>
+    <div class="alert alert-tip">
+      <span>✅</span>
+      <div><strong>Interview gold:</strong> "In my experience, the most effective P&L tracking is AM/PM split with hourly milestones against staff cost. You catch overstaffing in real time, not at the end of the week."</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Real Audit Systems — Two Models</h3>
+    <p><strong>Model 1: 100-Point Internal Audit</strong> (detailed, comprehensive)</p>
+    <ul>
+      <li>8 categories: Essentials, Utensils & Equipment, Cold/Hot Units, Storage, Hygiene & Cleanliness, Control Documents, Kitchen Trainings, Standards & Practices</li>
+      <li>Pass threshold: 75/100</li>
+      <li>External audit bonus: each point above 45/50 on external audit adds +3</li>
+      <li>Failed audit consequences: action plan within 48h, GM must do 1 full day + 1 full night in kitchen, follow-up audit 15 days later</li>
+    </ul>
+    <p style="margin-top:0.75rem"><strong>Model 2: 50-Point Simplified Audit</strong> (CEO's replacement model)</p>
+    <ul>
+      <li>8 categories: Dry Store (3), Walk-in & Service Fridges (6), FV Room Fridges (4.5), Freezers (4), Kitchen Cleanliness (17), Plonge (2), Staff Hygiene (2.5), Auto-Controls (11)</li>
+      <li><strong>Highest single-value item:</strong> "Previous action plan completed" = 3 points. Follow-through matters more than any individual cleanliness item.</li>
+      <li><strong>Kitchen Cleanliness (17pts)</strong> is the largest section — ceiling, walls, floor, bins (lids + foot pedals), fryers, grill, microwave, bain-maries, knives, chopping boards</li>
+      <li><strong>Auto-Controls (11pts)</strong> is second — delivery controls with temp/DLC, oil control, cleaning records, fridge temps, action plan completion</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🔴 Recurring Failures — What Actually Goes Wrong (Repeatedly)</h3>
+    <p>These issues appeared across multiple audits at the same venue over <strong>2+ years:</strong></p>
+    <table class="cmp-table">
+      <tr><th>Issue</th><th>Duration</th><th>Why It Keeps Failing</th></tr>
+      <tr><td>Internal hygiene samples not done weekly</td><td>2+ years</td><td>Nobody enforces when supervisor isn't present</td></tr>
+      <tr><td>Service fridge cleanliness</td><td>2+ years</td><td>Cleaning happens but not to standard — no one checks</td></tr>
+      <tr><td>Missing traçabilité entries</td><td>2+ years</td><td>Trail gaps when busy — documentation deprioritized under pressure</td></tr>
+      <tr><td>Record keeping gaps (temps, delivery, waste)</td><td>2+ years</td><td>Compliance is seen as admin, not safety</td></tr>
+      <tr><td>Delivery temps faked (all recorded as 4°C/-19°C)</td><td>Months</td><td>Staff write "correct" temps without actually measuring</td></tr>
+      <tr><td>DLC compliance gaps</td><td>Intermittent</td><td>Improves after audits, slides back within weeks</td></tr>
+    </table>
+    <div class="alert alert-critical">
+      <span>⚠️</span>
+      <div><strong>The lesson:</strong> Without persistent oversight, the same failures repeat for YEARS. Fixing something once doesn't mean it stays fixed. Systems need monitoring, not just setup. One venue was described by its own manager as "if we had a hygiene inspection today, we would have been shut down immediately." That venue was operating normally until the CEO personally walked in.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>CSE — Mystery Shopper System (50 Points)</h3>
+    <p>External mystery shopper evaluates customer experience, 2-3 per month per venue:</p>
+    <table class="cmp-table">
+      <tr><th>Category</th><th>Points</th><th>Key Items</th></tr>
+      <tr><td>Environment</td><td>13-15</td><td>Cleanliness (exterior + interior), floor, toilets (×2 checks), music volume, lighting</td></tr>
+      <tr><td>Contact & Service</td><td>25-27</td><td>Greeting within 30sec (-2), order repeat, upselling (-2), verbal checks (-2), manager visible + checking tables (-2), farewell</td></tr>
+      <tr><td>Timing</td><td>8-10</td><td>Menus 2min, order taken 2min, drinks 4min, food 12min, bill 2min, payment 4min</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.85rem;"><strong>Targets:</strong> Always >45/50. Perfect 50/50 earned a €500 bonus (shared SM + server). The best GMs built incentive systems around this.</p>
+    <p style="margin-top:0.25rem; font-size:0.85rem;"><strong>Critical insight:</strong> One venue scored 50/50 CSE (perfect customer experience) while the kitchen had faked delivery temps and recurring hygiene failures for 2+ years. CSE doesn't catch kitchen problems — by the time kitchen failures show up in CSE (food quality, timing), it's already bad.</p>
+  </div>
+
+  <div class="card">
+    <h3>Real Shift Plan Structure</h3>
+    <p>Kitchen Shift Manager plan includes:</p>
+    <ul>
+      <li><strong>Section assignments:</strong> Pass, Burger, Salad, Fryer, Plonge — each cook assigned a station</li>
+      <li><strong>Prep plan per cook:</strong> Item, Amount, Start Time, Duration, Checked</li>
+      <li><strong>KSM's own prep/duties:</strong> Separate from team's prep</li>
+      <li><strong>Daily cleaning duties:</strong> Who, What, When — assigned before shift</li>
+      <li><strong>16h checklist (ready for service):</strong> Steak tray present, measuring spoons, bins empty, floor clean, soap dispensers full, SOD bottles present, plates stacked, all prep completed</li>
+      <li><strong>00h handover checklist:</strong> Cleanings checked + signed, oil recorded, bins out (kitchen + salle), prep list completed, plonge empty, floor clean, surfaces clean</li>
+    </ul>
+    <p style="margin-top:0.5rem; font-size:0.85rem;"><strong>Shift plan inputs (what to check before building your plan):</strong> Last year's manager report for same period, events of the day, reservations, training planned, staff competencies, break schedules.</p>
+  </div>
+
+  <div class="card">
+    <h3>Role Hierarchy (Actual)</h3>
+    <table class="cmp-table">
+      <tr><th>Role</th><th>Responsibility</th></tr>
+      <tr><td>Kitchen Team / Salle Team</td><td>Execute: dishes on time, to Fiche Technique, minimal waste, hygiene compliance</td></tr>
+      <tr><td>Shift Manager (SM/KSM)</td><td>Hit sales targets, always deliver >45/50 CSE, train team, leave pub fully ready for next shift</td></tr>
+      <tr><td>Assistant Manager</td><td>Ensure SMs + team have everything to succeed, monitor + improve performance, hit GM and staff cost budgets</td></tr>
+      <tr><td>General Manager / Pub Manager</td><td>Define + communicate objectives, build plans, develop team, ensure values</td></tr>
+      <tr><td>Multi-Unit Manager (MUM)</td><td>Validate plans, troubleshoot beyond team's ability, oversee development</td></tr>
+    </table>
+    <div class="alert alert-info">
+      <span>💡</span>
+      <div><strong>Key philosophy from CEO:</strong> "It is absolutely NOT the MUM's job to control each individual's performance. YOUR performance is YOUR responsibility." If you interview here or similar: pitch yourself as someone who gives kitchens the <em>tools, standards, and structure to own their own performance</em> — not as someone who "controls."</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Break Management SOP</h3>
+    <ul>
+      <li>Staff meal breaks: 11h30-12h or 18h-18h30 only</li>
+      <li>20-min paid break only after 6+ continuous hours</li>
+      <li>No cigarette breaks outside official breaks</li>
+      <li>Kitchen staff eat at personnel meal times — no paid breaks</li>
+      <li>Shift Managers must be exemplary — no exceptions</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Cleaning Products Reference</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>Use</th><th>Dilution</th><th>Notes</th></tr>
+      <tr><td>Hysodegrais</td><td>Heavy grease (fryers, buildup)</td><td>5%</td><td>Heavy-duty degreaser</td></tr>
+      <tr><td>SOD 390</td><td>Disinfection</td><td>2%</td><td>CAUSTIC — always use gloves</td></tr>
+      <tr><td>DMS</td><td>Grill cleaning</td><td>5%/L</td><td>Cold or warm water only</td></tr>
+      <tr><td>LPM</td><td>Dishes (plonge)</td><td>As needed</td><td>Liquid dish soap</td></tr>
+      <tr><td>LLVM</td><td>General surfaces</td><td>1 lid per 2L</td><td>Inox, floors, microwave</td></tr>
+      <tr><td>Liquide vitre</td><td>Glass/windows</td><td>Ready to use</td><td>Spray and wipe</td></tr>
+    </table>
+  </div>
+</div>
+
+
+<!-- ==================== DLC REFERENCE ==================== -->
+<div class="section" id="sec-dlcref">
+  <h2 class="section-title">DLC Reference Table</h2>
+  <p class="section-desc">Shelf life reference for common restaurant products. Based on actual operational data. DLC = Date Limite de Consommation.</p>
+
+  <div class="alert alert-critical">
+    <span>⚠️</span>
+    <div><strong>Non-negotiable rules:</strong> ALL prepped/defrosted/opened items need a DLC sticker (date fab, DLC, product, cook name). Sticker DLC CANNOT exceed original packet DLC. No DLC sticker = immediately waste it. FIFO always — shorter DLC in front. NEVER re-freeze defrosted product. Defrost ONLY in fridge — never at room temp. Bain-marie preps: throw away at end of night shift.</div>
+  </div>
+
+  <div class="card">
+    <h3>Sauces — Fresh/Egg-based</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Aioli, Mayo, Frogburger Sauce, Sesame Mayo, Pesto Mayo</td><td style="color:var(--red); font-weight:700">3 days</td><td>Egg-based = short shelf life. Fridge only.</td></tr>
+      <tr><td>Fish batter, Panko egg wash</td><td style="color:var(--red); font-weight:700">1-2 days</td><td>Fish batter = make fresh daily. Panko wash = 2 days max.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Sauces — Opened/Shelf-stable</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>BBQ Sauce, Teriyaki Glaze</td><td>7 days</td><td>Once opened, fridge and label.</td></tr>
+      <tr><td>Onion Jam, Ketchup, Lemon Sauce</td><td style="color:var(--green)">1 month</td><td>Acidic/sugar-preserved.</td></tr>
+      <tr><td>Soy Sauce, Worcestershire</td><td style="color:var(--green)">1 month</td><td>High sodium = long shelf life. Still label.</td></tr>
+      <tr><td>Katsu Sauce, Korean Marinade</td><td>7 days</td><td>Check batch ingredients for allergens (peanuts, soy).</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Sauces — Storage/Bulk</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Mustard, Vinegar-based dressings</td><td style="color:var(--green)">1 month</td><td>Acidic base. Label open date.</td></tr>
+      <tr><td>Stock/Bouillon (opened)</td><td>3 days</td><td>Celery allergen risk in most stocks.</td></tr>
+      <tr><td>Cream (opened)</td><td style="color:var(--red); font-weight:700">3 days</td><td>Dairy = short. Smell test unreliable at 3 days.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Meats & Proteins</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Steaks (opened package)</td><td style="color:var(--red); font-weight:700">SAME DAY</td><td>Must be used day of opening. No exceptions.</td></tr>
+      <tr><td>Bacon (cooked)</td><td style="color:var(--red); font-weight:700">3 days</td><td></td></tr>
+      <tr><td>Chicken (pre-cooked/grilled)</td><td>4 days</td><td>Core temp must reach 75°C during cooking.</td></tr>
+      <tr><td>Pulled Pork, Ribs</td><td>5 days</td><td>Slow-cooked = good shelf if cooled properly.</td></tr>
+      <tr><td>Salmon, Fish fillets</td><td style="color:var(--red); font-weight:700">2-3 days</td><td>Check original label first. Fish = highest risk.</td></tr>
+      <tr><td>Raw chicken</td><td>See label</td><td>Always defer to original packaging DLC. Bottom shelf ONLY.</td></tr>
+      <tr><td>Gyoza, Crispy Chicken (frozen-to-cook)</td><td>See label</td><td>Once defrosted: 24h max. Never refreeze.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Preps — Burgers/Mains/Snacks</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Cooked rice</td><td style="color:var(--red); font-weight:700">3 days</td><td>Cool rapidly (&lt;2h to fridge). Bacillus cereus risk.</td></tr>
+      <tr><td>Falafel mix, Burger patties (raw)</td><td>3 days</td><td>Date from prep, not ingredients.</td></tr>
+      <tr><td>Coleslaw, House Salad</td><td>2 days</td><td>Dairy dressing = short life.</td></tr>
+      <tr><td>Mac & Cheese (prepped)</td><td>3 days</td><td>Reheat to 75°C core before service.</td></tr>
+      <tr><td>Bain-marie preps (ALL)</td><td style="color:var(--red); font-weight:700">END OF NIGHT</td><td>Throw away — never reheat next day. Non-negotiable.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Breads & Defrosted Products</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC from defrost</th><th>Notes</th></tr>
+      <tr><td>Burger Buns, Brioche</td><td>6 days</td><td>Fridge defrost only. Check for seeded (sesame allergen).</td></tr>
+      <tr><td>Tortillas</td><td>5 days</td><td>Gluten allergen.</td></tr>
+      <tr><td>Nachos Chips</td><td>3 days</td><td>Gluten risk depending on brand.</td></tr>
+      <tr><td>Guacamole</td><td style="color:var(--red); font-weight:700">2 days</td><td>Oxidizes fast once defrosted.</td></tr>
+      <tr><td>Hot dog bread, Kids Waffle</td><td>5 days</td><td>Check for egg/milk allergens in batter.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Desserts & Dairy</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Brownie, Cookie</td><td>4 days</td><td>Gluten + eggs + milk. Triple allergen flag.</td></tr>
+      <tr><td>Chocolate Mousse</td><td>6 days</td><td>Eggs + milk. Keep sealed.</td></tr>
+      <tr><td>NY Cheesecake, Pistachio Cheesecake</td><td>8 days</td><td>Tree nuts in pistachio variant.</td></tr>
+      <tr><td>Tiramisu</td><td>5 days</td><td>Eggs + milk + gluten. Alcohol content varies.</td></tr>
+      <tr><td>Churros (frozen)</td><td>See label</td><td>Once defrosted: 24h. Gluten allergen.</td></tr>
+      <tr><td>Blue cheese</td><td>7 days</td><td>Strong smell normal. Milk allergen.</td></tr>
+      <tr><td>Cheddar slices</td><td>3 days</td><td>Dries out fast once opened.</td></tr>
+      <tr><td>Crème fraîche liquide</td><td style="color:var(--red); font-weight:700">2 days</td><td>Dairy = high risk once opened.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Opened Storage Products</h3>
+    <table class="cmp-table">
+      <tr><th>Product</th><th>DLC</th><th>Notes</th></tr>
+      <tr><td>Iceberg (sliced)</td><td>3 days</td><td>Oxidizes. Cover with damp cloth.</td></tr>
+      <tr><td>Mango chutney, Tikka masala paste</td><td style="color:var(--green)">6 months</td><td>High acid/preservatives.</td></tr>
+      <tr><td>Pickles, Jalapeños (jarred)</td><td style="color:var(--green)">1 month</td><td>Vinegar preserved. Fridge after opening.</td></tr>
+      <tr><td>Onion rings, Mozza sticks (frozen)</td><td>See label</td><td>Once defrosted: same day. Gluten allergen.</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Key Temperature Reference</h3>
+    <table class="cmp-table">
+      <tr><th>Zone</th><th>Target</th><th>Action if violated</th></tr>
+      <tr><td>Fridge</td><td style="font-weight:700">0-4°C</td><td>Above 8°C = pull everything, check, log on Trail</td></tr>
+      <tr><td>Freezer</td><td style="font-weight:700">-18°C or below</td><td>Above -15°C = check seal, do not refreeze if thawed</td></tr>
+      <tr><td>Hot hold (bain-marie)</td><td style="font-weight:700">63°C+</td><td>Below 63°C for &gt;2h = waste it</td></tr>
+      <tr><td>Cooking core temp</td><td style="font-weight:700">75°C</td><td>Probe center of thickest part</td></tr>
+      <tr><td>Cooling rule</td><td>90min to reach fridge temp</td><td>Blast chill or ice bath if needed</td></tr>
+      <tr><td>Danger zone</td><td style="color:var(--red); font-weight:700">5-63°C</td><td>Bacteria doubles every 20 min. Minimize time here.</td></tr>
+    </table>
+    <p style="margin-top:0.5rem; font-size:0.82rem; color:var(--text2);">Rule: DLC on your sticker can NEVER exceed the DLC on the original packet. If the original says 2 days left, your sticker says 2 days — not the standard shelf life.</p>
+  </div>
+</div>
+
+<!-- ==================== GLOSSARY ====================
+
+<!-- ==================== GLOSSARY ==================== -->
+<div class="section" id="sec-glossary">
+  <h2 class="section-title">Glossary</h2>
+  <p class="section-desc">Quick reference for terms you'll hear constantly.</p>
+
+  <div class="card">
+    <table class="cmp-table">
+      <tr><td><strong>86'd</strong></td><td>Item is out of stock / unavailable. "86 the salmon."</td></tr>
+      <tr><td><strong>Covers</strong></td><td>Number of customers served. "We did 120 covers tonight."</td></tr>
+      <tr><td><strong>Average ticket</strong></td><td>Revenue per customer. Revenue ÷ covers.</td></tr>
+      <tr><td><strong>COGS</strong></td><td>Cost of Goods Sold — what you spent on ingredients.</td></tr>
+      <tr><td><strong>Prime cost</strong></td><td>COGS + Labor = the two costs you control most.</td></tr>
+      <tr><td><strong>Par level</strong></td><td>Minimum stock quantity for each item.</td></tr>
+      <tr><td><strong>FIFO</strong></td><td>First In First Out — stock rotation method.</td></tr>
+      <tr><td><strong>HACCP</strong></td><td>Food safety management system (legally required in EU).</td></tr>
+      <tr><td><strong>Z-report</strong></td><td>End-of-day POS summary showing all transactions.</td></tr>
+      <tr><td><strong>Mise en place</strong></td><td>"Everything in its place" — prep and organization before service.</td></tr>
+      <tr><td><strong>The pass</strong></td><td>Counter between kitchen and dining room where plates are checked before going out.</td></tr>
+      <tr><td><strong>In the weeds</strong></td><td>Overwhelmed, falling behind. "I'm in the weeds on table 5."</td></tr>
+      <tr><td><strong>Turn / table turn</strong></td><td>One cycle of seating a table: sit → eat → pay → leave → reset.</td></tr>
+      <tr><td><strong>Upsell</strong></td><td>Suggesting higher-value items: starters, desserts, premium drinks.</td></tr>
+      <tr><td><strong>Comp</strong></td><td>Complimentary — given for free, usually to resolve a complaint.</td></tr>
+      <tr><td><strong>Convention collective</strong></td><td>French sector-specific labor agreement (HCR for hotels/restaurants).</td></tr>
+      <tr><td><strong>SM / KSM</strong></td><td>Shift Manager / Kitchen Shift Manager. KSM runs the kitchen for a specific shift.</td></tr>
+      <tr><td><strong>AM / GM / MUM</strong></td><td>Assistant Manager / General Manager / Multi-Unit Manager. The management hierarchy.</td></tr>
+      <tr><td><strong>MR</strong></td><td>Manager Report — end-of-shift summary (sales, incidents, staff, cash).</td></tr>
+      <tr><td><strong>CSE</strong></td><td>Customer Service Evaluation — mystery shopper visit scored out of 50 points.</td></tr>
+      <tr><td><strong>Trail</strong></td><td>Digital checklist/HACCP compliance system. Records temps, cleaning, deliveries.</td></tr>
+      <tr><td><strong>FT (Fiche Technique)</strong></td><td>Recipe card with exact specs — portions, ingredients, plating, allergens.</td></tr>
+      <tr><td><strong>DLC</strong></td><td>Date Limite de Consommation — use-by date. Must be on every prepped/opened item.</td></tr>
+      <tr><td><strong>HT / TTC</strong></td><td>Hors Taxes / Toutes Taxes Comprises — before tax / with tax. P&L uses HT.</td></tr>
+      <tr><td><strong>Rota</strong></td><td>Staff scheduling document. Published weekly, 2 weeks ahead.</td></tr>
+      <tr><td><strong>SG (Sit and Greet)</strong></td><td>Front station position — welcoming guests, introducing menu.</td></tr>
+      <tr><td><strong>Milestone / MS</strong></td><td>Time-based sales checkpoint during shift (e.g., "€300 in MS").</td></tr>
+      <tr><td><strong>Silliker / Mérieux</strong></td><td>External food safety auditor (COFRAC accredited). Scores out of 50.</td></tr>
+      <tr><td><strong>Handover</strong></td><td>SM-to-SM shift transition. Must include completed MR + kitchen state.</td></tr>
+      <tr><td><strong>Verbal check</strong></td><td>Walking to tables to ask if everything is OK. Worth 2 CSE points.</td></tr>
+      <tr><td><strong>Avantage en nature repas</strong></td><td>Staff meal taxable benefit. ~€4/meal in HCR. Appears on every payslip.</td></tr>
+      <tr><td><strong>Cadre au forfait</strong></td><td>Manager-level contract: fixed annual days (typically 218) instead of hourly. No overtime tracking.</td></tr>
+
+      <tr><td><strong>Charges patronales</strong></td><td>Employer's social contributions (25-42% of gross; reduced near SMIC via RGDU 2026).</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Standard Operating Procedures — Quick Reference</h3>
+    <p>Core protocols every kitchen manager must know cold. These are the decision trees you run when something happens.</p>
+    <table class="cmp-table" style="font-size:0.82rem;">
+      <tr><th>Protocol</th><th>Steps</th></tr>
+      <tr><td><strong>86'd Item</strong> 🔪</td><td>1) Flag it immediately 2) Tell FOH/salle — they need to know before the next order 3) Update POS if available 4) Check if substitute exists</td></tr>
+      <tr><td><strong>Allergen Alert</strong> 💀</td><td>1) Check allergen matrix — never guess 2) Clean station, dedicated utensils 3) Final visual check at the pass before it leaves 4) Nobody dies on your watch</td></tr>
+      <tr><td><strong>DLC Check</strong> 📅</td><td>1) Label = item + date prepped + use-by + cook name 2) FIFO — oldest at front 3) Walk-in check catches the sneaky ones 4) Expired = bin + waste log</td></tr>
+      <tr><td><strong>Temperature Issue</strong> 🌡️</td><td>1) Probe it, log on Trail 2) Out of range? Pull it, investigate 3) Log the deviation 4) Cover your back — if it's not logged it didn't happen</td></tr>
+      <tr><td><strong>Delivery Receiving</strong> 🚚</td><td>1) Cold chain temps on arrival (probe check) 2) Qty + quality — eyes and nose 3) 15 min max to get it all stored 4) Reject anything outside spec, note on delivery sheet</td></tr>
+      <tr><td><strong>Equipment Down</strong> 🔧</td><td>1) Power off if it's being dramatic 2) Find a workaround for service 3) Handover notes so next shift knows 4) Log maintenance request</td></tr>
+      <tr><td><strong>Clean-as-you-go</strong> 🧹</td><td>1) Surfaces between tasks 2) Floors when needed, full mop at close 3) Fryer: daily filter, weekly deep clean 4) Walk-in shelves: weekly wipe</td></tr>
+      <tr><td><strong>Shift Handover</strong> 📋</td><td>1) All shift data complete (86s, allergens, equipment, preps) 2) Flag anything unfinished or unusual 3) Confirm who's taking over 4) Don't leave until handover is accepted</td></tr>
+      <tr><td><strong>KSM Standard</strong> 👑</td><td>Kitchen clean + organised. Team briefed with roles/prep/deadlines. DLC checks done. Comms to FOH clear + proactive. Handover complete. Prep plan realistic.</td></tr>
+      <tr><td><strong>CSE Readiness</strong> ⭐</td><td>50-point audit criteria memorized. Customer journey: greet &lt;30s, check back, farewell. Kitchen: timings, presentation, allergen process. Trail entries current. Cleaning records complete + signed.</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- ==================== INTERVIEW PREP ==================== -->
+<div class="section" id="sec-interview">
+  <h2 class="section-title">Interview Prep</h2>
+  <p class="section-desc">Common restaurant manager interview questions with strong answers. Adapt to your style — don't memorize, understand the principle.</p>
+
+
+  <div class="alert alert-warn" style="margin-bottom:1rem;">
+    <span>🔍</span>
+    <div><strong>Triple Filter — Interview Reality:</strong><br>
+    <strong>F1 (Race):</strong> French restaurant hiring discrimination is documented. Black applicants face a 1-in-5 callback ratio vs white applicants. You may need to be demonstrably more qualified to get the same interview. Strategy: lead with numbers and systems thinking. When they ask "how would you control food cost?" — your answer should be more specific and more structured than the average candidate's. Your Operator's Manual framework (Claim → Evidence → So What, from comm-01) applies directly to interview answers.<br>
+    <strong>F2 (AuDHD):</strong> Interviews are socially exhausting — high masking cost. Prep your answers in advance so they're in working memory, reducing executive load during the interview itself. You learn through concrete examples (your cognitive style), so practice saying your answers out loud, not just reading them. Time-box prep to avoid hyperfocus spiral.<br>
+    <strong>F1+F2 combined:</strong> You may be evaluated on "culture fit" — a concept that systematically disadvantages anyone who doesn't match the dominant group's social norms. Counter: reframe "culture fit" as "operational contribution." Your BATNA (Operator's Manual: nego-01): chômage runway until Jan 2027. You don't need to accept a bad environment.</div>
+  </div>  <div class="card">
+    <h3>"Tell me about your management style."</h3>
+    <p><strong>What they're looking for:</strong> Self-awareness + team orientation.</p>
+    <p><strong>Strong angle:</strong> "I lead by being organized and consistent. I set clear expectations, give feedback in the moment, and I'm always willing to jump in during rush. I believe people do their best work when they know what's expected and feel supported."</p>
+  </div>
+
+  <div class="card">
+    <h3>"How would you handle a staff member who's consistently late?"</h3>
+    <p><strong>What they're looking for:</strong> Process, not emotion.</p>
+    <p><strong>Strong angle:</strong> "First, I'd check if there's a pattern — same day, same time? Then I'd have a private conversation: state the facts, explain the impact on the team, ask if something's going on, and agree on a clear expectation. If it continues, I'd follow the disciplinary process."</p>
+  </div>
+
+  <div class="card">
+    <h3>"How do you control food cost?"</h3>
+    <p><strong>What they're looking for:</strong> Operational understanding.</p>
+    <p><strong>Strong angle:</strong> "Five things: standardized portions, ordering to forecast not habit, strict FIFO rotation, waste tracking with weekly review, and checking every delivery against the order. I'd also look at the menu mix — promoting high-margin items makes a difference without cutting quality."</p>
+  </div>
+
+  <div class="card">
+    <h3>"What would you do on your first week?"</h3>
+    <p><strong>What they're looking for:</strong> That you won't try to change everything immediately.</p>
+    <p><strong>Strong angle:</strong> "Week one is about observing and understanding: the team, the systems, the flow, the numbers. I'd shadow every position, review the P&L, check food safety compliance, and build relationships. I'd only make changes where there's an urgent safety or compliance issue. Everything else, I'd take notes and plan."</p>
+  </div>
+
+  <div class="card">
+    <h3>"How do you handle a busy service?"</h3>
+    <p><strong>What they're looking for:</strong> Composure + systems thinking.</p>
+    <p><strong>Strong angle:</strong> "I position myself at the pass — that's the control point. From there I can monitor ticket times, coordinate between kitchen and floor, and spot problems before they escalate. If the kitchen's in the weeds, I'll jump in for a specific task, but I try to stay in the oversight role because if I'm plating, nobody's watching the whole service."</p>
+  </div>
+
+  <div class="card">
+    <h3>"Why restaurant management?"</h3>
+    <p><strong>What they're looking for:</strong> Genuine motivation (they've heard "I love food" 1000 times).</p>
+    <p><strong>Personalize this. What's real for you:</strong> The problem-solving, the tangible results, the team aspect, the pace. Be specific about what draws you to it. Avoid generic passion statements.</p>
+  </div>
+
+
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <h3>🐸 Your Secret Weapon: Real Operational Knowledge</h3>
+    <p>You have something most candidates don't: <strong>6+ years inside a real multi-site operation.</strong> Use it.</p>
+    <ul>
+      <li><strong>When asked about hygiene:</strong> "I've seen audit scores drop from 87 to 62 in the same venue because compliance slides without persistent oversight. The documents exist — DLC tables, cleaning checklists, audit templates. What's missing is someone making sure they're followed consistently across shifts."</li>
+      <li><strong>When asked about P&L:</strong> "I understand how daily P&L tracking works in practice — AM/PM splits, hourly milestones against staff cost, beer/wet/food breakdowns. I know that 30% staff cost of HT sales is the benchmark and that going above it erodes profit fast."</li>
+      <li><strong>When asked about team:</strong> "I've worked shifts where the KSM plan had section assignments, individual prep tasks with times, and a 16h-readiness checklist. I know what a structured shift looks like — and I know what happens when it's not there."</li>
+      <li><strong>When asked about food safety failures:</strong> "The most common recurring failures I've seen are DLC compliance, fridge cleanliness, and documentation gaps — the same issues showing up audit after audit. The fix isn't one big cleanup, it's daily monitoring and follow-through on action plans."</li>
+    </ul>
+  </div>
+
+  <div class="alert alert-tip">
+    <span>✅</span>
+    <div><strong>Interview meta-rule:</strong> Every answer should show you think in systems, not just effort. "I'd work hard" is weak. "I'd track X, monitor Y, and adjust Z" is strong. Numbers and processes beat enthusiasm.</div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const section = item.dataset.section;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + section).classList.add('active');
+    document.getElementById('breadcrumb').textContent = item.textContent.trim();
+    // Close mobile sidebar
+    document.getElementById('sidebar').classList.remove('open');
+    window.scrollTo(0, 0);
+  });
+});
+
+// Sidebar toggle
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Theme toggle
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+}
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+
+// Checklist persistence — date-aware, section-scoped stable keys
+const today = new Date().toISOString().split('T')[0];
+
+function getCheckKey(cb) {
+  const section = cb.closest('.section');
+  const secId = section ? section.id : 'unknown';
+  const list = cb.closest('.checklist');
+  const listId = list ? list.id : 'list';
+  const items = list ? Array.from(list.querySelectorAll('input[type="checkbox"]')) : [];
+  const idx = items.indexOf(cb);
+  return 'cl-' + today + '-' + secId + '-' + listId + '-' + idx;
+}
+
+// Clean up old date keys (keep last 3 days)
+(function pruneOldChecklists() {
+  const keep = new Set();
+  for (let d = 0; d < 3; d++) {
+    const dt = new Date(Date.now() - d * 86400000).toISOString().split('T')[0];
+    keep.add(dt);
+  }
+  const toRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('cl-')) {
+      const dateMatch = k.match(/^cl-(\d{4}-\d{2}-\d{2})-/);
+      if (dateMatch && !keep.has(dateMatch[1])) toRemove.push(k);
+      // Also clean legacy keys without dates
+      if (!dateMatch && k.match(/^cl-sec-/)) toRemove.push(k);
+    }
+  }
+  toRemove.forEach(k => localStorage.removeItem(k));
+})();
+
+document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+  const key = getCheckKey(cb);
+  cb.checked = localStorage.getItem(key) === 'true';
+  if (cb.checked) cb.parentElement.classList.add('checked');
+  cb.addEventListener('change', () => {
+    localStorage.setItem(key, cb.checked);
+    cb.parentElement.classList.toggle('checked', cb.checked);
+  });
+});
+
+function resetChecklist(prefix) {
+  const activeSection = document.querySelector('.section.active');
+  if (!activeSection) return;
+  activeSection.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+    const key = getCheckKey(cb);
+    cb.checked = false;
+    cb.parentElement.classList.remove('checked');
+    localStorage.setItem(key, 'false');
+  });
+}
+
+// Show today's date on checklist resets
+document.querySelectorAll('.today-date').forEach(el => {
+  el.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+});
+
+// Collapsible
+document.querySelectorAll('.collapsible').forEach(el => {
+  el.addEventListener('click', () => el.classList.toggle('open'));
+});
+
+
+// Search across all sections
+function handleSearch(query) {
+  query = query.trim().toLowerCase();
+  const navItems = document.querySelectorAll('.nav-item');
+  const groups = document.querySelectorAll('.nav-group');
+  
+  if (!query) {
+    // Reset: show all nav items and groups
+    navItems.forEach(n => n.classList.remove('search-hidden'));
+    groups.forEach(g => g.style.display = '');
+    return;
+  }
+  
+  // Search through section content
+  const sections = document.querySelectorAll('.section');
+  const matchingSections = new Set();
+  
+  sections.forEach(sec => {
+    const text = sec.textContent.toLowerCase();
+    if (text.includes(query)) {
+      matchingSections.add(sec.id.replace('sec-', ''));
+    }
+  });
+  
+  // Filter nav items
+  navItems.forEach(n => {
+    const secName = n.dataset.section;
+    const label = n.textContent.toLowerCase();
+    const match = matchingSections.has(secName) || label.includes(query);
+    n.classList.toggle('search-hidden', !match);
+  });
+  
+  // Hide empty groups
+  groups.forEach(g => {
+    const visibleItems = g.querySelectorAll('.nav-item:not(.search-hidden)');
+    g.style.display = visibleItems.length ? '' : 'none';
+  });
+}
+
+// Keyboard shortcut: Ctrl+K / Cmd+K to focus search
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    var input = document.getElementById('searchInput');
+    if (input) {
+      // On mobile, open sidebar first
+      document.getElementById('sidebar').classList.add('open');
+      input.focus();
+      input.select();
+    }
+  }
+});
+
+
+// Service Worker registration (PWA offline support)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw-os.js').catch(function(e) {
+    console.log('SW registration failed:', e);
+  });
+}
+</script>
+</body>
+</html>
